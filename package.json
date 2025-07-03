@@ -1,5 +1,17 @@
 {
   "name": "midnight-contracts-lib",
+  "version": "0.0.1",
+  "description": "Monorepo for Midnight blockchain smart contracts and development tools",
+  "license": "GPL-3.0",
+  "author": {
+    "name": "Ricardo Rius",
+    "email": "9488369+riusricardo@users.noreply.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/riusricardo/midnight-contracts.git"
+  },
+  "keywords": ["midnight", "blockchain", "smart-contracts", "monorepo", "compact"],
   "private": true,
   "workspaces": [
     "contracts",
@@ -8,11 +20,9 @@
   "scripts": {
     "compact": "turbo run compact",
     "build": "turbo run build",
-    "test-against-testnet": "yarn --cwd contracts run test-against-testnet",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
-    "test-api": "turbo run test-api --filter=@repo/api",
-    "test-contracts": "turbo run test --filter=@repo/contracts"
+    "test-contracts": "turbo run test --filter=@midnight-ntwrk/contracts-lib"
   },
   "dependencies": {
     "@eslint/js": "^9.28.0",
