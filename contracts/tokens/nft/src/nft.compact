@@ -12,8 +12,8 @@ export ledger tokenApprovals: Map<Uint<64>, ZswapCoinPublicKey>;
 export ledger ownedTokensCount: Map<ZswapCoinPublicKey, Counter>;
 
 // Mapping from owner to operator approvals (owner -> operator -> bool)
-// Allows an operator to manage all tokens of the owner
-export ledger operatorApprovals: Map<ZswapCoinPublicKey, Map<ZswapCoinPublicKey, Boolean>>;
+// Using a flat structure: concatenate owner+operator bytes as composite key
+export ledger operatorApprovals: Map<Bytes<64>, Boolean>;
 
 // Counter for the next token ID to be minted
 export ledger currentTokenId: Counter;
@@ -63,29 +63,26 @@ export circuit setApprovalForAll(operator: ZswapCoinPublicKey, approved: Boolean
   assert(operator != default<ZswapCoinPublicKey>, "Operator cannot be empty.");
   assert(operator != senderPublicKey, "Cannot set yourself as operator.");
 
-  // Initialize the inner map if it doesn't exist
-  if (!operatorApprovals.member(senderPublicKey)) {
-    operatorApprovals.insert(senderPublicKey, default<Map<ZswapCoinPublicKey, Boolean>>);
-  }
-
+  // Create a composite key by combining owner and operator
+  const compositeKey = createCompositeKey(senderPublicKey, disclose(operator));
+  
   // Set or unset approval for the operator
-  operatorApprovals.lookup(senderPublicKey).insert(disclose(operator), disclose(approved));
+  operatorApprovals.insert(disclose(compositeKey), disclose(approved));
 }
 
 
 // Checks if an operator is approved to manage all tokens of a given owner
 export circuit isApprovedForAll(owner: ZswapCoinPublicKey, operator: ZswapCoinPublicKey): Boolean {
-  // If the owner has no operator approvals, return false
-  if (!operatorApprovals.member(disclose(owner))) {
+  // Create a composite key by combining owner and operator
+  const compositeKey = createCompositeKey(disclose(owner), disclose(operator));
+  
+  // Check if the approval exists and is true
+  if (!operatorApprovals.member(disclose(compositeKey))) {
     return false;
   }
-  const ops = operatorApprovals.lookup(owner);
-  // If the operator is not approved, return false
-  if (!ops.member(disclose(operator))) {
-    return false;
-  }
+  
   // Return the approval status
-  return ops.lookup(disclose(operator));
+  return operatorApprovals.lookup(disclose(compositeKey));
 }
 
 // Transfers ownership of a given token ID from one public key to another
@@ -119,6 +116,14 @@ export circuit burn(owner: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 // =====================
 // Internal helper functions
 // =====================
+export circuit createCompositeKey(owner: ZswapCoinPublicKey, operator: ZswapCoinPublicKey): Bytes<64> {
+  var result: Vector<64, Field> = default<Vector<64, Field>>;
+  for (const i of 0..32) {
+    result[i] = owner.bytes[i];
+    result[i + 32] = operator.bytes[i];
+  }
+  return result as Bytes<64>;
+}
 
 // Returns true if a token exists for the given token ID
 circuit tokenExists(tokenId: Uint<64>): Boolean {
