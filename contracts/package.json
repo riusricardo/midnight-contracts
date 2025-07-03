@@ -1,5 +1,5 @@
 {
-  "name": "@repo/nft-pub",
+  "name": "@repo/contracts",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "private": true,
@@ -18,9 +18,14 @@
   "scripts": {
     "compact": "compactc tokens/nft/src/nft.compact src/managed/nft",
     "test": "vitest run",
-    "test:compile": "npm run compact && vitest run",
+    "test:compile": "yarn compact && vitest run",
     "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./tokens/nft/src/nft.compact ./dist",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0",
+    "@types/node": "^22.15.29"
   }
 }

@@ -1,2 +1,2 @@
-export * as Nft from "./managed/nft/index.cjs";
+export * as Nft from "../../../src/managed/nft/contract/index.cjs";
 export * from "./witnesses";

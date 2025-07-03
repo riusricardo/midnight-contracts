@@ -2,9 +2,8 @@
   "name": "midnight-contracts-lib",
   "private": true,
   "workspaces": [
-    "contracts/*",
-    "api/*"
- 
+    "contracts",
+    "compact"
   ],
   "scripts": {
     "compact": "turbo run compact",
@@ -13,7 +12,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
     "test-api": "turbo run test-api --filter=@repo/api",
-    "test-contract": "turbo run test --filter=@repo/contracts"
+    "test-contracts": "turbo run test --filter=@repo/contracts"
   },
   "dependencies": {
     "@eslint/js": "^9.28.0",
