@@ -28,7 +28,6 @@ import {
   QueryContext,
   sampleContractAddress,
   constructorContext,
-  ownPublicKey,
   type CoinPublicKey
 } from "@midnight-ntwrk/compact-runtime";
 import {
@@ -39,7 +38,7 @@ import {
 import { type NftPrivateState, witnesses } from "../witnesses.js";
 
 // Import TextEncoder/TextDecoder for Node.js compatibility
-import { TextEncoder, TextDecoder } from "util";
+import { TextEncoder } from "util";
 
 // This simulator uses the actual compiled NFT contract
 export class NftSimulator {
@@ -67,25 +66,8 @@ export class NftSimulator {
   }
 
   // Get the current public key from the circuit context
-  public getUserPublicKey(userName?: string): CoinPublicKey {
-    if (userName) {
-      // Generate a 64-character hex string from the user name for compatibility
-      return this.generateHexKey(userName);
-    }
-
-    // Return the user's public key from the circuit context
-    let publicKey = ownPublicKey(this.baseContext);
-
-    // If the public key is empty (all zeros), create a test public key
-    if (publicKey.bytes.every((byte) => byte === 0)) {
-      publicKey = { ...publicKey, bytes: new Uint8Array(32).fill(0) }; // Use a test public key
-    }
-    // Convert the public key bytes to a string representation
-    return this.bytesToString(publicKey) as CoinPublicKey;
-  }
-
-  // Generate a 64-character hex string from a username (compatible with "0".repeat(64))
-  private generateHexKey(userName: string): CoinPublicKey {
+  public getUserPublicKey(userName: string): CoinPublicKey {
+    // Generate a 64-character hex string from the user name for compatibility
     // Create a hash-like representation from the username
     const encoded = new TextEncoder().encode(userName);
     const hexChars = [];
@@ -102,36 +84,11 @@ export class NftSimulator {
     return hexChars.join("") as CoinPublicKey;
   }
 
-  public getLedger(): Ledger {
-    return ledger(this.baseContext.originalState.data);
-  }
-
-  public getPrivateState(): NftPrivateState {
-    return this.baseContext.currentPrivateState;
-  }
-
   // Helper function to convert string to 32-byte format
   private stringToBytes(str: string): { bytes: Uint8Array } {
     const encoded = new TextEncoder().encode(str);
     const bytes = new Uint8Array(32);
     bytes.set(encoded.slice(0, 32)); // Truncate if too long, pad with zeros if too short
-    return { bytes };
-  }
-
-  // Helper function to convert bytes to string
-  private bytesToString(bytesObj: { bytes: Uint8Array }): string {
-    // Find the first null byte to determine string length
-    const nullIndex = bytesObj.bytes.indexOf(0);
-    const actualBytes =
-      nullIndex === -1 ? bytesObj.bytes : bytesObj.bytes.slice(0, nullIndex);
-    return new TextDecoder().decode(actualBytes);
-  }
-
-  // Helper function to convert string to 64-byte format (for public keys)
-  private stringTo64Bytes(str: string): { bytes: Uint8Array } {
-    const encoded = new TextEncoder().encode(str);
-    const bytes = new Uint8Array(64);
-    bytes.set(encoded.slice(0, 64)); // Truncate if too long, pad with zeros if too short
     return { bytes };
   }
 
@@ -150,6 +107,14 @@ export class NftSimulator {
       bytes[i] = isNaN(byte) ? 0 : byte;
     }
     return { bytes };
+  }
+
+  public getLedger(): Ledger {
+    return ledger(this.baseContext.originalState.data);
+  }
+
+  public getPrivateState(): NftPrivateState {
+    return this.baseContext.currentPrivateState;
   }
 
   public mint(to: CoinPublicKey, tokenId: bigint): [] {
