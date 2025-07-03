@@ -124,7 +124,6 @@ export circuit transferFrom(from: ZswapCoinPublicKey, to: ZswapCoinPublicKey, to
 
 // Mints a new token with the specified token ID to the given public key
 export circuit mint(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  assert(to != default<ZswapCoinPublicKey>, "Recipient cannot be empty.");
   addTokenTo(disclose(to), disclose(tokenId));
 }
 

@@ -10,6 +10,7 @@
       "outputs": []
     },
     "compact": {
+      "cache": false,
       "dependsOn": ["^build"],
       "env": ["COMPACT_HOME"],
       "inputs": ["src/**/*.compact"],

@@ -38,6 +38,9 @@ import {
 } from "../../../../src/managed/nft/contract/index.cjs";
 import { type NftPrivateState, witnesses } from "../witnesses.js";
 
+// Import TextEncoder/TextDecoder for Node.js compatibility
+import { TextEncoder, TextDecoder } from "util";
+
 // This simulator uses the actual compiled NFT contract
 export class NftSimulator {
   readonly contract: Contract<NftPrivateState>;
@@ -49,7 +52,9 @@ export class NftSimulator {
       currentPrivateState,
       currentContractState,
       currentZswapLocalState
-    } = this.contract.initialState(constructorContext({}, "0".repeat(64)));
+    } = this.contract.initialState(
+      constructorContext({}, this.getUserPublicKey("Alice"))
+    );
     this.baseContext = {
       currentPrivateState,
       currentZswapLocalState,
@@ -62,10 +67,39 @@ export class NftSimulator {
   }
 
   // Get the current public key from the circuit context
-  public getCurrentPublicKey(): string {
+  public getUserPublicKey(userName?: string): CoinPublicKey {
+    if (userName) {
+      // Generate a 64-character hex string from the user name for compatibility
+      return this.generateHexKey(userName);
+    }
+
     // Return the user's public key from the circuit context
-    const publicKey = ownPublicKey(this.baseContext);
-    return publicKey.toString();
+    let publicKey = ownPublicKey(this.baseContext);
+
+    // If the public key is empty (all zeros), create a test public key
+    if (publicKey.bytes.every((byte) => byte === 0)) {
+      publicKey = { ...publicKey, bytes: new Uint8Array(32).fill(0) }; // Use a test public key
+    }
+    // Convert the public key bytes to a string representation
+    return this.bytesToString(publicKey) as CoinPublicKey;
+  }
+
+  // Generate a 64-character hex string from a username (compatible with "0".repeat(64))
+  private generateHexKey(userName: string): CoinPublicKey {
+    // Create a hash-like representation from the username
+    const encoded = new TextEncoder().encode(userName);
+    const hexChars = [];
+
+    // Convert each byte to hex and pad to ensure we get 64 characters
+    for (let i = 0; i < 32; i++) {
+      const byte =
+        i < encoded.length
+          ? encoded[i]
+          : (userName.charCodeAt(i % userName.length) + i) % 256;
+      hexChars.push(byte.toString(16).padStart(2, "0"));
+    }
+
+    return hexChars.join("") as CoinPublicKey;
   }
 
   public getLedger(): Ledger {
@@ -93,15 +127,42 @@ export class NftSimulator {
     return new TextDecoder().decode(actualBytes);
   }
 
-  public mint(
-    to: CoinPublicKey,
-    tokenId: bigint,
-    caller: CoinPublicKey = "system"
-  ): [] {
+  // Helper function to convert string to 64-byte format (for public keys)
+  private stringTo64Bytes(str: string): { bytes: Uint8Array } {
+    const encoded = new TextEncoder().encode(str);
+    const bytes = new Uint8Array(64);
+    bytes.set(encoded.slice(0, 64)); // Truncate if too long, pad with zeros if too short
+    return { bytes };
+  }
+
+  // Helper function to convert bytes to hex string (64 characters)
+  private bytesToHexString(bytesObj: { bytes: Uint8Array }): string {
+    return Array.from(bytesObj.bytes)
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  // Helper function to convert hex string to bytes
+  private hexStringToBytes(hexStr: string): { bytes: Uint8Array } {
+    const bytes = new Uint8Array(32); // Contract expects 32 bytes
+    for (let i = 0; i < Math.min(hexStr.length / 2, 32); i++) {
+      const byte = parseInt(hexStr.substr(i * 2, 2), 16);
+      bytes[i] = isNaN(byte) ? 0 : byte;
+    }
+    return { bytes };
+  }
+
+  public mint(to: CoinPublicKey, tokenId: bigint): [] {
     // Use base context for mint operations
+    // Check if 'to' is a hex string (64 characters of hex) and convert appropriately
+    const toBytes =
+      to.length === 64 && /^[0-9a-fA-F]+$/.test(to)
+        ? this.hexStringToBytes(to)
+        : this.stringToBytes(to);
+
     const result = this.contract.impureCircuits.mint(
       this.baseContext,
-      this.stringToBytes(to),
+      toBytes,
       tokenId
     );
     this.baseContext = result.context;
@@ -110,84 +171,80 @@ export class NftSimulator {
 
   public ownerOf(tokenId: bigint): [CoinPublicKey] {
     const result = this.contract.circuits.ownerOf(this.baseContext, tokenId);
-    return [this.bytesToString(result.result) as CoinPublicKey];
+    // Convert the result bytes to a hex string to match the format of getUserPublicKey
+    return [this.bytesToHexString(result.result) as CoinPublicKey];
   }
 
   public balanceOf(owner: CoinPublicKey): [bigint] {
+    // Check if 'owner' is a hex string and convert appropriately
+    const ownerBytes =
+      owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
+        ? this.hexStringToBytes(owner)
+        : this.stringToBytes(owner);
+
     const result = this.contract.circuits.balanceOf(
       this.baseContext,
-      this.stringToBytes(owner)
+      ownerBytes
     );
     return [result.result];
   }
 
-  public approve(
-    to: CoinPublicKey,
-    tokenId: bigint,
-    caller: CoinPublicKey
-  ): [] {
-    // For testing, we'll track the approval state but still call the contract to validate
-    try {
-      const result = this.contract.impureCircuits.approve(
-        this.baseContext,
-        this.stringToBytes(to),
-        tokenId
-      );
-      this.baseContext = result.context;
-      return [];
-    } catch (error) {
-      // If the contract approve fails but this is a valid test case,
-      // we'll manually track the approval for testing purposes
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes("Not authorized")) {
-        // For testing: simulate the approval being set even if authorization fails
-        // This is needed because we can't properly simulate different callers
-        return [];
-      }
-      throw error;
-    }
+  public approve(to: CoinPublicKey, tokenId: bigint): [] {
+    // Call the contract approve method directly
+    const toBytes =
+      to.length === 64 && /^[0-9a-fA-F]+$/.test(to)
+        ? this.hexStringToBytes(to)
+        : this.stringToBytes(to);
+
+    const result = this.contract.impureCircuits.approve(
+      this.baseContext,
+      toBytes,
+      tokenId
+    );
+    this.baseContext = result.context;
+    return [];
   }
 
   public getApproved(tokenId: bigint): [CoinPublicKey | undefined] {
-    try {
-      const result = this.contract.circuits.getApproved(
-        this.baseContext,
-        tokenId
-      );
-      return [this.bytesToString(result.result) as CoinPublicKey];
-    } catch (error) {
-      return [undefined];
-    }
+    const result = this.contract.circuits.getApproved(
+      this.baseContext,
+      tokenId
+    );
+    return [this.bytesToHexString(result.result) as CoinPublicKey];
   }
 
-  public setApprovalForAll(
-    operator: CoinPublicKey,
-    approved: boolean,
-    caller: CoinPublicKey
-  ): [] {
-    try {
-      const result = this.contract.impureCircuits.setApprovalForAll(
-        this.baseContext,
-        this.stringToBytes(operator),
-        approved
-      );
-      this.baseContext = result.context;
-      return [];
-    } catch (error) {
-      // For testing, we'll simulate the approval being set
-      return [];
-    }
+  public setApprovalForAll(operator: CoinPublicKey, approved: boolean): [] {
+    const operatorBytes =
+      operator.length === 64 && /^[0-9a-fA-F]+$/.test(operator)
+        ? this.hexStringToBytes(operator)
+        : this.stringToBytes(operator);
+
+    const result = this.contract.impureCircuits.setApprovalForAll(
+      this.baseContext,
+      operatorBytes,
+      approved
+    );
+    this.baseContext = result.context;
+    return [];
   }
 
   public isApprovedForAll(
     owner: CoinPublicKey,
     operator: CoinPublicKey
   ): [boolean] {
+    const ownerBytes =
+      owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
+        ? this.hexStringToBytes(owner)
+        : this.stringToBytes(owner);
+    const operatorBytes =
+      operator.length === 64 && /^[0-9a-fA-F]+$/.test(operator)
+        ? this.hexStringToBytes(operator)
+        : this.stringToBytes(operator);
+
     const result = this.contract.circuits.isApprovedForAll(
       this.baseContext,
-      this.stringToBytes(owner),
-      this.stringToBytes(operator)
+      ownerBytes,
+      operatorBytes
     );
     return [result.result];
   }
@@ -195,48 +252,39 @@ export class NftSimulator {
   public transferFrom(
     from: CoinPublicKey,
     to: CoinPublicKey,
-    tokenId: bigint,
-    caller: CoinPublicKey
+    tokenId: bigint
   ): [] {
-    try {
-      const result = this.contract.impureCircuits.transferFrom(
-        this.baseContext,
-        this.stringToBytes(from),
-        this.stringToBytes(to),
-        tokenId
-      );
-      this.baseContext = result.context;
-      return [];
-    } catch (error) {
-      // For testing, we'll simulate successful transfer if the caller is the owner
-      if (caller === from) {
-        // Manually perform the transfer for testing
-        // This is a simplified simulation
-        return [];
-      }
-      throw error;
-    }
+    const fromBytes =
+      from.length === 64 && /^[0-9a-fA-F]+$/.test(from)
+        ? this.hexStringToBytes(from)
+        : this.stringToBytes(from);
+    const toBytes =
+      to.length === 64 && /^[0-9a-fA-F]+$/.test(to)
+        ? this.hexStringToBytes(to)
+        : this.stringToBytes(to);
+
+    const result = this.contract.impureCircuits.transferFrom(
+      this.baseContext,
+      fromBytes,
+      toBytes,
+      tokenId
+    );
+    this.baseContext = result.context;
+    return [];
   }
 
-  public burn(
-    owner: CoinPublicKey,
-    tokenId: bigint,
-    caller: CoinPublicKey
-  ): [] {
-    try {
-      const result = this.contract.impureCircuits.burn(
-        this.baseContext,
-        this.stringToBytes(owner),
-        tokenId
-      );
-      this.baseContext = result.context;
-      return [];
-    } catch (error) {
-      // For testing, we'll simulate successful burn if the caller is the owner
-      if (caller === owner) {
-        return [];
-      }
-      throw error;
-    }
+  public burn(owner: CoinPublicKey, tokenId: bigint): [] {
+    const ownerBytes =
+      owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
+        ? this.hexStringToBytes(owner)
+        : this.stringToBytes(owner);
+
+    const result = this.contract.impureCircuits.burn(
+      this.baseContext,
+      ownerBytes,
+      tokenId
+    );
+    this.baseContext = result.context;
+    return [];
   }
 }
