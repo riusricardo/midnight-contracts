@@ -36,6 +36,7 @@ import {
   ledger
 } from "../../../../src/managed/nft/contract/index.cjs";
 import { type NftPrivateState, witnesses } from "../witnesses.js";
+import { toHex, fromHex, isHex } from "@midnight-ntwrk/midnight-js-utils";
 
 // Import TextEncoder/TextDecoder for Node.js compatibility
 import { TextEncoder } from "util";
@@ -94,19 +95,19 @@ export class NftSimulator {
 
   // Helper function to convert bytes to hex string (64 characters)
   private bytesToHexString(bytesObj: { bytes: Uint8Array }): string {
-    return Array.from(bytesObj.bytes)
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
+    return toHex(bytesObj.bytes);
   }
 
   // Helper function to convert hex string to bytes
   private hexStringToBytes(hexStr: string): { bytes: Uint8Array } {
-    const bytes = new Uint8Array(32); // Contract expects 32 bytes
-    for (let i = 0; i < Math.min(hexStr.length / 2, 32); i++) {
-      const byte = parseInt(hexStr.substr(i * 2, 2), 16);
-      bytes[i] = isNaN(byte) ? 0 : byte;
+    // Validate hex input
+    if (!isHex(hexStr)) {
+      throw new Error(`Invalid hex string: ${hexStr}`);
     }
-    return { bytes };
+    const bytes = fromHex(hexStr.padStart(64, "0")); // Ensure 64 characters (32 bytes)
+    const result = new Uint8Array(32);
+    result.set(bytes.slice(0, 32)); // Take first 32 bytes
+    return { bytes: result };
   }
 
   public getLedger(): Ledger {
@@ -196,7 +197,7 @@ export class NftSimulator {
   public isApprovedForAll(
     owner: CoinPublicKey,
     operator: CoinPublicKey
-  ): [boolean] {
+  ): boolean {
     const ownerBytes =
       owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
         ? this.hexStringToBytes(owner)
@@ -211,7 +212,7 @@ export class NftSimulator {
       ownerBytes,
       operatorBytes
     );
-    return [result.result];
+    return result.result;
   }
 
   public transferFrom(

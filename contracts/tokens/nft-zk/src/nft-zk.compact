@@ -55,14 +55,14 @@ export circuit balanceOf(owner: ZswapCoinPublicKey): Uint<64> {
   // If you check for someone else we use shared secret.
   if(disclose(owner == senderPublicKey)){
     // Create a hash key from sender and shared secret.
-    const ownerHashKey = disclose(transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, getLocalSecret()]));
+    const ownerHashKey = disclose(generateHashKey(senderPublicKey.bytes, getLocalSecret()));
     // Get the owner tokens count.
     if (ownedTokensCount.member(ownerHashKey)) {
       return ownedTokensCount.lookup(ownerHashKey);
     }
   } else {
     // Create a hash key from owner and shared secret.
-    const ownerHashKey = disclose(transientHash<[Bytes<32>, Bytes<32>]>([owner.bytes, getSharedSecret()]));
+    const ownerHashKey = disclose(generateHashKey(owner.bytes, getSharedSecret()));
     // Get the owner tokens count.
     if (ownedTokensCount.member(ownerHashKey)) {
       return ownedTokensCount.lookup(ownerHashKey);
@@ -84,7 +84,7 @@ export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   assert(to != default<ZswapCoinPublicKey>, "Approved account cannot be empty.");
 
   // Create a hash key from to and local secret.
-  const toLocalHashKey = transientHash<[Bytes<32>, Bytes<32>]>([to.bytes, getLocalSecret()]);
+  const toLocalHashKey = generateHashKey(to.bytes, getLocalSecret());
 
   // Get the owner of the token.
   const ownerHashKey = ownerOf(tokenId);
@@ -93,13 +93,13 @@ export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   assert(toLocalHashKey != ownerHashKey, "Cannot approve yourself.");
 
   // Create a hash key from sender and local secret.
-  const senderHashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, getLocalSecret()]);
+  const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
 
   // The caller must be the owner or an approved operator
   assert(disclose(senderHashKey == ownerHashKey) || isApprovedForAll(ownerHashKey, senderHashKey), "Not authorized.");
 
   // Create a hash key from to and shared secret.
-  const toSharedHashKey = transientHash<[Bytes<32>, Bytes<32>]>([to.bytes, getSharedSecret()]);
+  const toSharedHashKey = generateHashKey(to.bytes, getSharedSecret());
   
   tokenApprovals.insert(disclose(tokenId), disclose(toSharedHashKey));
 }
@@ -119,10 +119,10 @@ export circuit setApprovalForAll(operator: ZswapCoinPublicKey, approved: Boolean
   assert(operator != senderPublicKey, "Cannot set yourself as operator.");
 
   // Create a hash key from sender and local secret.
-  const senderHashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, getLocalSecret()]);
+  const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
 
   // Create a hash key from operator and shared secret.
-  const operatorHashKey = transientHash<[Bytes<32>, Bytes<32>]>([operator.bytes, getSharedSecret()]);
+  const operatorHashKey = generateHashKey(operator.bytes, getSharedSecret());
 
   // Create a hash key from owner and operator
   const hashKey = transientHash<[Field, Field]>([senderHashKey, operatorHashKey]);
@@ -151,7 +151,7 @@ export circuit transfer(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
 
   // Create a hash key from sender and local secret.
-  const senderHashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, getLocalSecret()]);
+  const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
 
   transferFrom(disclose(senderHashKey), disclose(to), disclose(tokenId));
 }
@@ -162,12 +162,12 @@ export circuit transferFrom(fromHashKey: Field, to: ZswapCoinPublicKey, tokenId:
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
 
   // Create a hash key from sender and local secret.
-  const senderHashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, getLocalSecret()]);
+  const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
 
   assert(isApprovedOrOwner(senderHashKey, tokenId), "Not authorized to transfer.");
 
   // Create a hash key with shared secret.
-  const toHashKey = transientHash<[Bytes<32>, Bytes<32>]>([to.bytes, getSharedSecret()]);
+  const toHashKey = generateHashKey(to.bytes, getSharedSecret());
 
   // Clear approval for this token
   clearApproval(disclose(fromHashKey), disclose(tokenId));
@@ -185,12 +185,12 @@ export circuit mint(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 
   if(to == senderPublicKey){
     // Create a hash key from sender and shared secret.
-    const senderHashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, getLocalSecret()]);
+    const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
     // If you mint for yourself we use local secret.
     addTokenTo(disclose(senderHashKey), disclose(tokenId));
   } else {
     // Create a hash key from to and shared secret.
-    const toHashKey = transientHash<[Bytes<32>, Bytes<32>]>([to.bytes, getSharedSecret()]);
+    const toHashKey = generateHashKey(to.bytes, getSharedSecret());
     // If you mint for someone else we use shared secret.
     addTokenTo(disclose(toHashKey), disclose(tokenId));
   }
@@ -200,6 +200,11 @@ export circuit mint(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 export circuit burn(ownerHashKey: Field, tokenId: Uint<64>): [] {
   clearApproval(disclose(ownerHashKey), disclose(tokenId));
   removeTokenFrom(disclose(ownerHashKey), disclose(tokenId));
+}
+
+// This is not a safe implementation because the hash is not unique and can be guessed.
+export pure circuit generateHashKey(pK1: Bytes<32>, pK2: Bytes<32>): Field {
+  return transientHash<[Bytes<32>, Bytes<32>]>([pK1, pK2]);
 }
 
 // =====================

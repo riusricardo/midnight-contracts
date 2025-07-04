@@ -110,6 +110,8 @@ yarn build
 ```bash
 # Run all tests
 yarn test-contracts
+
+npx vitest run tokens/nft-zk/src/test/nft-zk.test.ts --reporter=verbose
 ```
 
 ### Development Workflow
