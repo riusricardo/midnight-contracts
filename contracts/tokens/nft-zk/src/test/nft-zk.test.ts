@@ -24,7 +24,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { NftSimulator } from "./nft-simulator.js";
+import { NftSimulator } from "./nft-zk-simulator.js";
 import {
   NetworkId,
   setNetworkId
@@ -43,11 +43,11 @@ describe("NFT Contract Tests", () => {
 
     // Check that Alice owns the token
     const owner = simulator.ownerOf(tokenId);
-    expect(owner[0]).toBe(alice);
+    expect(owner).toBe(alice);
 
     // Check Alice's balance
     const balance = simulator.balanceOf(alice);
-    expect(balance[0]).toBe(1n);
+    expect(balance).toBe(1n);
   });
 
   it("should transfer token between users", () => {
@@ -64,14 +64,14 @@ describe("NFT Contract Tests", () => {
 
     // Check new owner
     const newOwner = simulator.ownerOf(tokenId);
-    expect(newOwner[0]).toBe(bob);
+    expect(newOwner).toBe(bob);
 
     // Check balances
     const aliceBalance = simulator.balanceOf(alice);
-    expect(aliceBalance[0]).toBe(0n);
+    expect(aliceBalance).toBe(0n);
 
     const bobBalance = simulator.balanceOf(bob);
-    expect(bobBalance[0]).toBe(1n);
+    expect(bobBalance).toBe(1n);
   });
 
   it("should approve and get approved address", () => {
@@ -88,7 +88,7 @@ describe("NFT Contract Tests", () => {
 
     // Check approval
     const approved = simulator.getApproved(tokenId);
-    expect(approved[0]).toBe(bob);
+    expect(approved).toBe(bob);
   });
 
   it("should set approval for all", () => {
@@ -101,7 +101,7 @@ describe("NFT Contract Tests", () => {
 
     // Check approval
     const isApproved = simulator.isApprovedForAll(alice, bob);
-    expect(isApproved[0]).toBe(true);
+    expect(isApproved).toBe(true);
   });
 
   it("should burn a token", () => {
@@ -117,7 +117,7 @@ describe("NFT Contract Tests", () => {
 
     // Check that Alice's balance decreased
     const balance = simulator.balanceOf(alice);
-    expect(balance[0]).toBe(0n);
+    expect(balance).toBe(0n);
 
     // Token should no longer exist (this would throw in ownerOf)
     expect(() => simulator.ownerOf(tokenId)).toThrow();
@@ -133,16 +133,16 @@ describe("NFT Contract Tests", () => {
     simulator.mint(alice, 3n);
 
     // Check ownership
-    expect(simulator.ownerOf(1n)[0]).toBe(alice);
-    expect(simulator.ownerOf(2n)[0]).toBe(bob);
-    expect(simulator.ownerOf(3n)[0]).toBe(alice);
+    expect(simulator.ownerOf(1n)).toBe(alice);
+    expect(simulator.ownerOf(2n)).toBe(bob);
+    expect(simulator.ownerOf(3n)).toBe(alice);
 
     // Check balances
     const aliceBalance = simulator.balanceOf(alice);
-    expect(aliceBalance[0]).toBe(2n);
+    expect(aliceBalance).toBe(2n);
 
     const bobBalance = simulator.balanceOf(bob);
-    expect(bobBalance[0]).toBe(1n);
+    expect(bobBalance).toBe(1n);
   });
 
   it("should handle non-existent tokens correctly", () => {
@@ -181,7 +181,7 @@ describe("NFT Contract Tests", () => {
     simulator.approve(bob, tokenId);
 
     // Verify approval
-    expect(simulator.getApproved(tokenId)[0]).toBe(bob);
+    expect(simulator.getApproved(tokenId)).toBe(bob);
 
     // Alice transfers to Charlie (Alice is the caller)
     simulator.transferFrom(alice, charlie, tokenId);
@@ -201,7 +201,7 @@ describe("NFT Contract Tests", () => {
     simulator.approve(bob, tokenId);
 
     // Verify approval
-    expect(simulator.getApproved(tokenId)[0]).toBe(bob);
+    expect(simulator.getApproved(tokenId)).toBe(bob);
 
     // Alice burns the token (Alice is the caller)
     simulator.burn(alice, tokenId);
@@ -236,7 +236,7 @@ describe("NFT Contract Tests", () => {
 
     // Check balance of user with no tokens
     const balance = simulator.balanceOf(alice);
-    expect(balance[0]).toBe(0n);
+    expect(balance).toBe(0n);
   });
 
   it("should maintain correct balances after multiple operations", () => {
@@ -248,20 +248,20 @@ describe("NFT Contract Tests", () => {
     simulator.mint(alice, 1n);
     simulator.mint(alice, 2n);
     simulator.mint(alice, 3n);
-    expect(simulator.balanceOf(alice)[0]).toBe(3n);
+    expect(simulator.balanceOf(alice)).toBe(3n);
 
     // Alice transfers 1 to Bob (Alice is the caller)
     simulator.transferFrom(alice, bob, 1n);
-    expect(simulator.balanceOf(alice)[0]).toBe(2n);
-    expect(simulator.balanceOf(bob)[0]).toBe(1n);
+    expect(simulator.balanceOf(alice)).toBe(2n);
+    expect(simulator.balanceOf(bob)).toBe(1n);
 
     // Alice burns 1 token (Alice is the caller)
     simulator.burn(alice, 2n);
-    expect(simulator.balanceOf(alice)[0]).toBe(1n);
+    expect(simulator.balanceOf(alice)).toBe(1n);
 
     // Bob burns his token (Bob is the caller)
     simulator.burn(bob, 1n);
-    expect(simulator.balanceOf(bob)[0]).toBe(0n);
+    expect(simulator.balanceOf(bob)).toBe(0n);
   });
 
   it("should handle operator approvals correctly", () => {
@@ -271,18 +271,18 @@ describe("NFT Contract Tests", () => {
     const charlie = simulator.getUserPublicKey("Charlie");
 
     // Initial state - no approvals
-    expect(simulator.isApprovedForAll(alice, bob)[0]).toBe(false);
+    expect(simulator.isApprovedForAll(alice, bob)).toBe(false);
 
     // Alice approves Bob as operator (Alice is the caller)
     simulator.setApprovalForAll(bob, true);
-    expect(simulator.isApprovedForAll(alice, bob)[0]).toBe(true);
+    expect(simulator.isApprovedForAll(alice, bob)).toBe(true);
 
     // Charlie is not approved
-    expect(simulator.isApprovedForAll(alice, charlie)[0]).toBe(false);
+    expect(simulator.isApprovedForAll(alice, charlie)).toBe(false);
 
     // Alice revokes Bob's approval (Alice is the caller)
     simulator.setApprovalForAll(bob, false);
-    expect(simulator.isApprovedForAll(alice, bob)[0]).toBe(false);
+    expect(simulator.isApprovedForAll(alice, bob)).toBe(false);
   });
 
   it("should handle complex approval and transfer scenarios", () => {
@@ -302,17 +302,17 @@ describe("NFT Contract Tests", () => {
     simulator.approve(charlie, tokenId);
 
     // Verify both approvals exist
-    expect(simulator.isApprovedForAll(alice, bob)[0]).toBe(true);
-    expect(simulator.getApproved(tokenId)[0]).toBe(charlie);
+    expect(simulator.isApprovedForAll(alice, bob)).toBe(true);
+    expect(simulator.getApproved(tokenId)).toBe(charlie);
 
     // Charlie transfers the token to himself (using specific approval)
     simulator.transferFrom(alice, charlie, tokenId);
 
     // Token should now belong to Charlie
-    expect(simulator.ownerOf(tokenId)[0]).toBe(charlie);
+    expect(simulator.ownerOf(tokenId)).toBe(charlie);
 
     // All approvals should be cleared after transfer
-    expect(simulator.isApprovedForAll(alice, bob)[0]).toBe(true); // operator approval for Alice remains
+    expect(simulator.isApprovedForAll(alice, bob)).toBe(true); // operator approval for Alice remains
     expect(() => simulator.getApproved(tokenId)).toThrow(); // specific approval should be cleared
   });
 
@@ -324,15 +324,15 @@ describe("NFT Contract Tests", () => {
     const largeTokenId = 18446744073709551615n; // Near max uint64
     simulator.mint(alice, largeTokenId);
 
-    expect(simulator.ownerOf(largeTokenId)[0]).toBe(alice);
-    expect(simulator.balanceOf(alice)[0]).toBe(1n);
+    expect(simulator.ownerOf(largeTokenId)).toBe(alice);
+    expect(simulator.balanceOf(alice)).toBe(1n);
 
     // Test with token ID 1 (contract doesn't allow 0)
     const smallTokenId = 1n;
     simulator.mint(alice, smallTokenId);
 
-    expect(simulator.ownerOf(smallTokenId)[0]).toBe(alice);
-    expect(simulator.balanceOf(alice)[0]).toBe(2n);
+    expect(simulator.ownerOf(smallTokenId)).toBe(alice);
+    expect(simulator.balanceOf(alice)).toBe(2n);
   });
 
   it("should handle sequential minting and burning operations", () => {
@@ -344,27 +344,27 @@ describe("NFT Contract Tests", () => {
     for (let i = 1n; i <= 5n; i++) {
       simulator.mint(alice, i);
     }
-    expect(simulator.balanceOf(alice)[0]).toBe(5n);
+    expect(simulator.balanceOf(alice)).toBe(5n);
 
     // Transfer odd tokens to Bob
     simulator.transferFrom(alice, bob, 1n);
     simulator.transferFrom(alice, bob, 3n);
     simulator.transferFrom(alice, bob, 5n);
 
-    expect(simulator.balanceOf(alice)[0]).toBe(2n);
-    expect(simulator.balanceOf(bob)[0]).toBe(3n);
+    expect(simulator.balanceOf(alice)).toBe(2n);
+    expect(simulator.balanceOf(bob)).toBe(3n);
 
     // Burn some tokens
     simulator.burn(alice, 2n);
     simulator.burn(bob, 1n);
 
-    expect(simulator.balanceOf(alice)[0]).toBe(1n);
-    expect(simulator.balanceOf(bob)[0]).toBe(2n);
+    expect(simulator.balanceOf(alice)).toBe(1n);
+    expect(simulator.balanceOf(bob)).toBe(2n);
 
     // Verify remaining tokens
-    expect(simulator.ownerOf(4n)[0]).toBe(alice);
-    expect(simulator.ownerOf(3n)[0]).toBe(bob);
-    expect(simulator.ownerOf(5n)[0]).toBe(bob);
+    expect(simulator.ownerOf(4n)).toBe(alice);
+    expect(simulator.ownerOf(3n)).toBe(bob);
+    expect(simulator.ownerOf(5n)).toBe(bob);
   });
 
   it("should correctly handle mixed approval types in transfer scenarios", () => {
@@ -386,15 +386,15 @@ describe("NFT Contract Tests", () => {
 
     // Bob (as operator) can transfer token 2
     simulator.transferFrom(alice, dave, 2n);
-    expect(simulator.ownerOf(2n)[0]).toBe(dave);
+    expect(simulator.ownerOf(2n)).toBe(dave);
 
     // Charlie (with specific approval) can transfer token 1
     simulator.transferFrom(alice, dave, 1n);
-    expect(simulator.ownerOf(1n)[0]).toBe(dave);
+    expect(simulator.ownerOf(1n)).toBe(dave);
 
     // Alice should have no tokens left
-    expect(simulator.balanceOf(alice)[0]).toBe(0n);
-    expect(simulator.balanceOf(dave)[0]).toBe(2n);
+    expect(simulator.balanceOf(alice)).toBe(0n);
+    expect(simulator.balanceOf(dave)).toBe(2n);
   });
 
   it("should handle rapid approval changes correctly", () => {
@@ -408,22 +408,22 @@ describe("NFT Contract Tests", () => {
 
     // Rapid approval changes
     simulator.approve(bob, tokenId);
-    expect(simulator.getApproved(tokenId)[0]).toBe(bob);
+    expect(simulator.getApproved(tokenId)).toBe(bob);
 
     simulator.approve(charlie, tokenId);
-    expect(simulator.getApproved(tokenId)[0]).toBe(charlie);
+    expect(simulator.getApproved(tokenId)).toBe(charlie);
 
     simulator.approve(bob, tokenId);
-    expect(simulator.getApproved(tokenId)[0]).toBe(bob);
+    expect(simulator.getApproved(tokenId)).toBe(bob);
 
     // Operator approval changes
     simulator.setApprovalForAll(charlie, true);
-    expect(simulator.isApprovedForAll(alice, charlie)[0]).toBe(true);
+    expect(simulator.isApprovedForAll(alice, charlie)).toBe(true);
 
     simulator.setApprovalForAll(charlie, false);
-    expect(simulator.isApprovedForAll(alice, charlie)[0]).toBe(false);
+    expect(simulator.isApprovedForAll(alice, charlie)).toBe(false);
 
     simulator.setApprovalForAll(charlie, true);
-    expect(simulator.isApprovedForAll(alice, charlie)[0]).toBe(true);
+    expect(simulator.isApprovedForAll(alice, charlie)).toBe(true);
   });
 });

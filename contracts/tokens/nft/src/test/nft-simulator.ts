@@ -134,13 +134,13 @@ export class NftSimulator {
     return [];
   }
 
-  public ownerOf(tokenId: bigint): [CoinPublicKey] {
+  public ownerOf(tokenId: bigint): CoinPublicKey {
     const result = this.contract.circuits.ownerOf(this.baseContext, tokenId);
     // Convert the result bytes to a hex string to match the format of getUserPublicKey
-    return [this.bytesToHexString(result.result) as CoinPublicKey];
+    return this.bytesToHexString(result.result) as CoinPublicKey;
   }
 
-  public balanceOf(owner: CoinPublicKey): [bigint] {
+  public balanceOf(owner: CoinPublicKey): bigint {
     // Check if 'owner' is a hex string and convert appropriately
     const ownerBytes =
       owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
@@ -151,7 +151,7 @@ export class NftSimulator {
       this.baseContext,
       ownerBytes
     );
-    return [result.result];
+    return result.result;
   }
 
   public approve(to: CoinPublicKey, tokenId: bigint): [] {
@@ -170,12 +170,12 @@ export class NftSimulator {
     return [];
   }
 
-  public getApproved(tokenId: bigint): [CoinPublicKey | undefined] {
+  public getApproved(tokenId: bigint): CoinPublicKey | undefined {
     const result = this.contract.circuits.getApproved(
       this.baseContext,
       tokenId
     );
-    return [this.bytesToHexString(result.result) as CoinPublicKey];
+    return this.bytesToHexString(result.result) as CoinPublicKey;
   }
 
   public setApprovalForAll(operator: CoinPublicKey, approved: boolean): [] {
