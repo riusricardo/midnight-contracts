@@ -35,7 +35,6 @@ A comprehensive collection of smart contracts built for the Midnight blockchain 
 The Midnight Contracts project aims to:
 
 - **Accelerate Development**: Provide ready-to-use, battle-tested smart contracts
-- **Ensure Privacy**: Leverage Midnight's zero-knowledge capabilities for private transactions
 - **Promote Reusability**: Create modular contracts that can be easily integrated into different projects
 - **Maintain Quality**: Implement comprehensive testing and security best practices
 - **Foster Innovation**: Enable developers to build on solid foundations rather than starting from scratch
@@ -72,10 +71,9 @@ midnight-contracts/
 
 **Location**: [`./contracts/tokens/nft/`](./contracts/tokens/nft/)
 
-A complete ERC-721 compatible NFT implementation with privacy features:
+A complete ERC-721 compatible NFT implementation:
 
 - ✅ **Minting & Burning**: Create and destroy unique tokens
-- ✅ **Secure Transfers**: Privacy-preserving token transfers
 - ✅ **Approval System**: Granular permission management
 - ✅ **Balance Tracking**: Efficient ownership queries
 - ✅ **Operator Support**: Delegate management capabilities
