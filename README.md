@@ -79,11 +79,9 @@ A complete ERC-721 compatible NFT implementation:
 - ✅ **Operator Support**: Delegate management capabilities
 - ✅ **Comprehensive Testing**: 20+ test cases covering all scenarios
 
-
 📖 **[Read the full NFT documentation →](./contracts/tokens/nft/README.md)**
 
 ### 🚀 More Contracts Coming Soon
-
 
 ## Getting Started
 
@@ -167,12 +165,14 @@ We welcome contributions! Here's how to get involved:
 This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
 
 ### What this means:
+
 - ✅ **Free to use** in open source projects
 - ✅ **Free to modify** and distribute
 - ⚠️ **Must remain open source** if distributed
 - ⚠️ **Must include license notice** in derivative works
+
 ---
 
 **Built with ❤️ for the Midnight ecosystem**
 
-*Empowering developers to build privacy-first applications with confidence.*
+_Empowering developers to build privacy-first applications with confidence._

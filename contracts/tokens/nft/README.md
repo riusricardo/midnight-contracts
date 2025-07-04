@@ -30,6 +30,7 @@ This directory contains a complete NFT (Non-Fungible Token) contract implementat
 ## Overview
 
 The NFT contract provides the following functionality:
+
 - **Minting**: Create new unique tokens with specific IDs
 - **Ownership**: Track token ownership of token
 - **Transfers**: Transfer tokens between addresses with proper authorization
@@ -41,6 +42,7 @@ The NFT contract provides the following functionality:
 ## Contract Features
 
 ### Core Functions
+
 - `mint(to, tokenId)` - Create a new token and assign it to an address
 - `transferFrom(from, to, tokenId)` - Transfer a token between addresses
 - `approve(to, tokenId)` - Approve an address to transfer a specific token
@@ -48,6 +50,7 @@ The NFT contract provides the following functionality:
 - `burn(owner, tokenId)` - Destroy a token permanently
 
 ### Query Functions
+
 - `ownerOf(tokenId)` - Get the owner of a specific token
 - `balanceOf(owner)` - Get the number of tokens owned by an address
 - `getApproved(tokenId)` - Get the approved address for a specific token
@@ -90,6 +93,7 @@ yarn test -- tokens/nft/src/test/nft.test.ts --reporter=verbose
 ### Test Coverage
 
 The test suite covers:
+
 ```bash
 @midnight-ntwrk/contracts-lib:test:  ✓ tokens/nft/src/test/nft.test.ts (20 tests) 375ms
 @midnight-ntwrk/contracts-lib:test:    ✓ NFT Contract Tests > should mint a new token 31ms
@@ -112,11 +116,10 @@ The test suite covers:
 @midnight-ntwrk/contracts-lib:test:    ✓ NFT Contract Tests > should handle sequential minting and burning operations 57ms
 @midnight-ntwrk/contracts-lib:test:    ✓ NFT Contract Tests > should correctly handle mixed approval types in transfer scenarios 32ms
 @midnight-ntwrk/contracts-lib:test:    ✓ NFT Contract Tests > should handle rapid approval changes correctly 23ms
-@midnight-ntwrk/contracts-lib:test: 
+@midnight-ntwrk/contracts-lib:test:
 @midnight-ntwrk/contracts-lib:test:  Test Files  1 passed (1)
 @midnight-ntwrk/contracts-lib:test:       Tests  20 passed (20)
 ```
-
 
 ## Development
 

@@ -1,5 +1,5 @@
 /**
- * @file NFT witness types and utilities
+ * @file NFT-ZK witness types and utilities
  * @author Ricardo Rius
  * @license GPL-3.0
  *
@@ -23,7 +23,56 @@
  * damages or losses arising from the use of this software.
  */
 
-// This is how we type an empty object.
-export type NftZkPrivateState = {};
+import {
+  Contract as ContractType,
+  Ledger,
+  Witnesses
+} from "../../../src/managed/nft-zk/contract/index.cjs";
+import { WitnessContext } from "@midnight-ntwrk/compact-runtime";
 
-export const witnesses = {};
+export type Contract<T, W extends Witnesses<T> = Witnesses<T>> = ContractType<
+  T,
+  W
+>;
+
+export type NftZkPrivateState = {
+  readonly local_secret: Uint8Array;
+  readonly shared_secret: Uint8Array;
+};
+
+export function createNftZkPrivateState(
+  local_secret: Uint8Array,
+  shared_secret: Uint8Array
+): NftZkPrivateState {
+  return {
+    local_secret,
+    shared_secret
+  };
+}
+
+export const witnesses = {
+  getLocalSecret: ({
+    privateState
+  }: WitnessContext<Ledger, NftZkPrivateState>): [
+    NftZkPrivateState,
+    Uint8Array
+  ] => {
+    if (privateState.local_secret) {
+      return [privateState, privateState.local_secret];
+    } else {
+      throw new Error("No local secret found.");
+    }
+  },
+  getSharedSecret: ({
+    privateState
+  }: WitnessContext<Ledger, NftZkPrivateState>): [
+    NftZkPrivateState,
+    Uint8Array
+  ] => {
+    if (privateState.local_secret) {
+      return [privateState, privateState.shared_secret];
+    } else {
+      throw new Error("No shared secret found.");
+    }
+  }
+};

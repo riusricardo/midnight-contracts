@@ -1,5 +1,5 @@
 /**
- * @file NFT contract simulator for testing
+ * @file NFT-ZK contract simulator for testing
  * @author Ricardo Rius
  * @license GPL-3.0
  *
@@ -35,7 +35,11 @@ import {
   type Ledger,
   ledger
 } from "../../../../src/managed/nft-zk/contract/index.cjs";
-import { type NftZkPrivateState, witnesses } from "../witnesses.js";
+import {
+  type NftZkPrivateState,
+  createNftZkPrivateState,
+  witnesses
+} from "../witnesses.js";
 
 // Import TextEncoder/TextDecoder for Node.js compatibility
 import { TextEncoder } from "util";
@@ -52,7 +56,13 @@ export class NftSimulator {
       currentContractState,
       currentZswapLocalState
     } = this.contract.initialState(
-      constructorContext({}, this.getUserPublicKey("Alice"))
+      constructorContext(
+        createNftZkPrivateState(
+          this.stringToBytes("my_local_secret").bytes,
+          this.stringToBytes("my_shared_secret").bytes
+        ),
+        this.getUserPublicKey("Alice")
+      )
     );
     this.baseContext = {
       currentPrivateState,

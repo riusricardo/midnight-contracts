@@ -1,5 +1,5 @@
 /**
- * @file NFT contract test suite
+ * @file NFT-ZK contract test suite
  * @author Ricardo Rius
  * @license GPL-3.0
  *

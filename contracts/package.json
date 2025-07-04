@@ -27,7 +27,7 @@
     }
   },
   "scripts": {
-    "compact": "compactc tokens/nft/src/nft.compact src/managed/nft && compactc tokens/nft-zk/src/nft-zk.compact src/managed/nft-zk ",
+    "compact": " compactc tokens/nft-zk/src/nft-zk.compact src/managed/nft-zk ",
     "test": "vitest run",
     "test:compile": "yarn compact && vitest run",
     "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./tokens/nft/src/nft.compact ./dist && cp ./tokens/nft-zk/src/nft-zk.compact ./dist",

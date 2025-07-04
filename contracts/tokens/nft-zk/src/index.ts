@@ -1,5 +1,5 @@
 /**
- * @file NFT contract exports and utilities
+ * @file NFT-ZK contract exports and utilities
  * @author Ricardo Rius
  * @license GPL-3.0
  *
@@ -25,3 +25,8 @@
 
 export * as NftZk from "../../../src/managed/nft-zk/contract/index.cjs";
 export * from "./witnesses";
+export type {
+  createNftZkPrivateState,
+  NftZkPrivateState,
+  witnesses
+} from "./witnesses.js";
