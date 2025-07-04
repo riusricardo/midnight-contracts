@@ -56,9 +56,12 @@ midnight-contracts/
 │   │   ├── 📄 index.ts             # Main exports
 │   │   └── 📁 managed/             # Compiled contract artifacts
 │   └── 📁 tokens/                  # Token-related contracts
-│       └── 📁 nft/                 # NFT contract implementation
-│           ├── 📄 README.md        # Detailed NFT documentation
-│           └── 📁 src/             # NFT source code and tests
+│       ├── 📁 nft/                 # NFT contract (Public Ledger)
+│       │   ├── 📄 README.md        # NFT public version documentation
+│       │   └── 📁 src/             # NFT source code and tests
+│       └── 📁 nft-zk/              # NFT-ZK contract (Zero-Knowledge Privacy)
+│           ├── 📄 README.md        # NFT-ZK privacy documentation
+│           └── 📁 src/             # NFT-ZK source code and tests
 ├── 📁 compact/                     # Compact compiler tooling
 │   ├── 📄 package.json             # Compiler package configuration
 │   └── 📁 src/                     # Compiler utilities
@@ -67,19 +70,52 @@ midnight-contracts/
 
 ## 🛠️ Available Contracts
 
-### NFT (Non-Fungible Token) Contract
+### NFT (Non-Fungible Token) Contracts
 
+We provide **two complete NFT implementations** to meet different privacy and transparency requirements:
+
+#### 🔓 NFT Contract (Public Ledger)
 **Location**: [`./contracts/tokens/nft/`](./contracts/tokens/nft/)
 
-A complete ERC-721 compatible NFT implementation:
+A transparent ERC-721 compatible NFT implementation with full public visibility:
 
+- ✅ **Public Transparency**: All ownership and transfers visible on blockchain
+- ✅ **Simple Implementation**: Direct address-to-token mappings
+- ✅ **High Performance**: Efficient operations with minimal overhead
+- ✅ **Full Auditability**: Complete transaction history publicly verifiable
+- ✅ **Standards Compliant**: ERC-721 compatible interface
+
+📖 **[Read the NFT (Public) documentation →](./contracts/tokens/nft/README.md)**
+
+#### 🔐 NFT-ZK Contract (Zero-Knowledge Privacy)
+**Location**: [`./contracts/tokens/nft-zk/`](./contracts/tokens/nft-zk/)
+
+A privacy-preserving NFT implementation using zero-knowledge proofs and hash-based ownership:
+
+- ✅ **Ownership Privacy**: Hash-based identities instead of public addresses
+- ✅ **Transfer Privacy**: Zero-knowledge proofs hide transaction details
+- ✅ **Balance Privacy**: Private computation of token holdings
+- ✅ **Cryptographic Security**: Dual secret system for enhanced privacy
+- ✅ **Standards Compliant**: ERC-721 compatible with privacy enhancements
+
+📖 **[Read the NFT-ZK (Privacy) documentation →](./contracts/tokens/nft-zk/README.md)**
+
+#### 🔄 Choosing Between NFT Variants
+
+| Feature | NFT (Public) | NFT-ZK (Private) |
+|---------|--------------|------------------|
+| **Privacy** | ❌ Fully public | ✅ Hash-based privacy |
+| **Performance** | ✅ High efficiency | ⚠️ ZK overhead |
+| **Complexity** | ✅ Simple | ⚠️ Complex (ZK circuits) |
+| **Auditability** | ✅ Full transparency | ✅ Provable correctness |
+| **Use Case** | Public marketplaces, transparency required | Private collections, confidential transfers |
+
+**Common Features** (Both Implementations):
 - ✅ **Minting & Burning**: Create and destroy unique tokens
-- ✅ **Approval System**: Granular permission management
+- ✅ **Approval System**: Granular permission management  
 - ✅ **Balance Tracking**: Efficient ownership queries
 - ✅ **Operator Support**: Delegate management capabilities
 - ✅ **Comprehensive Testing**: 20+ test cases covering all scenarios
-
-📖 **[Read the full NFT documentation →](./contracts/tokens/nft/README.md)**
 
 ### 🚀 More Contracts Coming Soon
 
@@ -111,7 +147,9 @@ yarn build
 # Run all tests
 yarn test-contracts
 
-npx vitest run tokens/nft-zk/src/test/nft-zk.test.ts --reporter=verbose
+# Run specific contract tests
+npx vitest run tokens/nft/src/test/nft.test.ts --reporter=verbose      # Public NFT
+npx vitest run tokens/nft-zk/src/test/nft-zk.test.ts --reporter=verbose  # Private NFT-ZK
 ```
 
 ### Development Workflow
@@ -136,9 +174,10 @@ Our contracts follow rigorous testing practices:
 
 ### Test Coverage
 
-- **NFT Contract**: 20 comprehensive test cases
-- **Coverage**: 100% function coverage, 95%+ line coverage
-- **Scenarios**: Normal operations, edge cases, error conditions
+- **NFT Contract (Public)**: 20 comprehensive test cases covering public ledger functionality
+- **NFT-ZK Contract (Privacy)**: 23 comprehensive test cases covering zero-knowledge features
+- **Coverage**: 100% function coverage, 95%+ line coverage across both implementations
+- **Scenarios**: Normal operations, edge cases, error conditions, privacy validation
 
 ## 🤝 Contributing
 
@@ -160,7 +199,8 @@ We welcome contributions! Here's how to get involved:
 
 ## 📚 Documentation
 
-- **[NFT Contract Guide](./contracts/tokens/nft/README.md)**: Complete NFT documentation
+- **[NFT Contract (Public) Guide](./contracts/tokens/nft/README.md)**: Complete public NFT documentation
+- **[NFT-ZK Contract (Privacy) Guide](./contracts/tokens/nft-zk/README.md)**: Complete private NFT documentation
 
 ## 📄 License
 
