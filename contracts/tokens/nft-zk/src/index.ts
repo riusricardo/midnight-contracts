@@ -1,5 +1,5 @@
 /**
- * @file Main entry point for midnight contracts library
+ * @file NFT contract exports and utilities
  * @author Ricardo Rius
  * @license GPL-3.0
  *
@@ -23,5 +23,5 @@
  * damages or losses arising from the use of this software.
  */
 
-export * as Nft from "./managed/nft/contract/index.cjs";
-export * as NftZk from "./managed/nft-zk/contract/index.cjs";
+export * as NftZk from "../../../src/managed/nft-zk/contract/index.cjs";
+export * from "./witnesses";
