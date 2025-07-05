@@ -53,7 +53,7 @@ export circuit balanceOf(owner: ZswapCoinPublicKey): Uint<64> {
 // Returns the owner of a given token ID
 export circuit ownerOf(tokenId: Uint<64>): ZswapCoinPublicKey {
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
-  assert(tokenExists(tokenId), "Token does not exist.");
+  assert(tokenExists(disclose(tokenId)), "Token does not exist.");
   return tokenOwner.lookup(disclose(tokenId));
 }
 
@@ -62,7 +62,7 @@ export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();
   assert(to != default<ZswapCoinPublicKey>, "Approved address cannot be empty.");
 
-  const owner = disclose(ownerOf(tokenId));
+  const owner = ownerOf(tokenId);
   assert(to != owner, "Cannot approve yourself.");
 
   // The caller must be the owner or an approved operator
@@ -74,7 +74,7 @@ export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 // Returns the approved public key for a given token ID
 export circuit getApproved(tokenId: Uint<64>): ZswapCoinPublicKey {
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
-  assert(tokenExists(tokenId), "Token does not exist.");
+  assert(tokenExists(disclose(tokenId)), "Token does not exist.");
 
   return tokenApprovals.lookup(disclose(tokenId));
 }
@@ -86,7 +86,7 @@ export circuit setApprovalForAll(operator: ZswapCoinPublicKey, approved: Boolean
   assert(operator != senderPublicKey, "Cannot set yourself as operator.");
 
   // Create a hash key from owner and operator
-  const hashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, disclose(operator).bytes]);
+  const hashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, operator.bytes]);
   
   // Set or unset approval for the operator
   operatorApprovals.insert(disclose(hashKey), disclose(approved));
@@ -95,7 +95,7 @@ export circuit setApprovalForAll(operator: ZswapCoinPublicKey, approved: Boolean
 // Checks if an operator is approved to manage all tokens of a given owner
 export circuit isApprovedForAll(owner: ZswapCoinPublicKey, operator: ZswapCoinPublicKey): Boolean {
   // Create a hash key from owner and operator
-  const hashKey = transientHash<[Bytes<32>, Bytes<32>]>([disclose(owner).bytes, disclose(operator).bytes]);
+  const hashKey = transientHash<[Bytes<32>, Bytes<32>]>([owner.bytes, operator.bytes]);
   
   // Check if the approval exists
   if (!operatorApprovals.member(disclose(hashKey))) {
@@ -111,14 +111,14 @@ export circuit transfer(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
 
-  transferFrom(disclose(senderPublicKey), disclose(to), disclose(tokenId));
+  transferFrom(senderPublicKey, to, tokenId);
 }
 
 // Transfers ownership of a given token ID from one public key to another
 export circuit transferFrom(from: ZswapCoinPublicKey, to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
-  assert(isApprovedOrOwner(senderPublicKey, tokenId), "Not authorized to transfer.");
+  assert(isApprovedOrOwner(disclose(senderPublicKey), disclose(tokenId)), "Not authorized to transfer.");
 
   // Clear approval for this token
   clearApproval(disclose(from), disclose(tokenId));
@@ -147,12 +147,12 @@ export circuit burn(owner: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 
 // Returns true if a token exists for the given token ID
 circuit tokenExists(tokenId: Uint<64>): Boolean {
-  return tokenOwner.member(disclose(tokenId));
+  return tokenOwner.member(tokenId);
 }
 
 // Returns true if the spender is the owner, approved, or an operator for the token
 circuit isApprovedOrOwner(spender: ZswapCoinPublicKey, tokenId: Uint<64>): Boolean {
-  const owner = disclose(ownerOf(tokenId));
+  const owner = ownerOf(tokenId);
   
   // Check if spender is the owner
   if (spender == owner) {
@@ -160,7 +160,7 @@ circuit isApprovedOrOwner(spender: ZswapCoinPublicKey, tokenId: Uint<64>): Boole
   }
   
   // Check if spender is specifically approved for this token
-  if (tokenApprovals.member(disclose(tokenId)) && spender == tokenApprovals.lookup(disclose(tokenId))) {
+  if (tokenApprovals.member(tokenId) && spender == tokenApprovals.lookup(tokenId)) {
     return true;
   }
   
@@ -173,30 +173,30 @@ circuit addTokenTo(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   assert(!tokenExists(tokenId), "Token already exists.");
   assert(to != default<ZswapCoinPublicKey>, "Recipient cannot be empty.");
 
-  tokenOwner.insert(disclose(tokenId), disclose(to));
+  tokenOwner.insert(tokenId, to);
   // Initialize the counter if it doesn't exist
-  if (!ownedTokensCount.member(disclose(to))) {
-    ownedTokensCount.insert(disclose(to), default<Counter>);
+  if (!ownedTokensCount.member(to)) {
+    ownedTokensCount.insert(to, default<Counter>);
   }
   // Increment the owner's token count
-  ownedTokensCount.lookup(disclose(to)).increment(1);
+  ownedTokensCount.lookup(to).increment(1);
 }
 
 // Removes a token from a public key, updating ownership and balance
 circuit removeTokenFrom(from: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   assert(from != default<ZswapCoinPublicKey>, "Sender cannot be empty.");
-  assert(from == disclose(ownerOf(tokenId)), "Public key is not the owner.");
+  assert(from == ownerOf(tokenId), "Public key is not the owner.");
   
   // Decrement the owner's token count
-  ownedTokensCount.lookup(disclose(from)).decrement(1);
+  ownedTokensCount.lookup(from).decrement(1);
   // Remove the token from the owner
-  tokenOwner.remove(disclose(tokenId));
+  tokenOwner.remove(tokenId);
 }
 
 // Clears approval for a token, if any
 circuit clearApproval(owner: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  assert(owner == disclose(ownerOf(tokenId)), "Public key is not the owner.");
-  if (disclose(ownerOf(tokenId)) != default<ZswapCoinPublicKey>) {
-    tokenApprovals.remove(disclose(tokenId));
+  assert(owner == ownerOf(tokenId), "Public key is not the owner.");
+  if (ownerOf(tokenId) != default<ZswapCoinPublicKey>) {
+    tokenApprovals.remove(tokenId);
   }
 }

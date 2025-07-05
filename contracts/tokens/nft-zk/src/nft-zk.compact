@@ -54,7 +54,7 @@ export circuit balanceOf(owner: ZswapCoinPublicKey): Uint<64> {
   // If you check for yourself we use local secret.
   // If you check for someone else we use shared secret.
   if(disclose(owner == senderPublicKey)){
-    // Create a hash key from sender and shared secret.
+    // Create a hash key from sender and local secret.
     const ownerHashKey = disclose(generateHashKey(senderPublicKey.bytes, getLocalSecret()));
     // Get the owner tokens count.
     if (ownedTokensCount.member(ownerHashKey)) {
@@ -74,7 +74,7 @@ export circuit balanceOf(owner: ZswapCoinPublicKey): Uint<64> {
 // Returns the owner of a given token ID
 export circuit ownerOf(tokenId: Uint<64>): Field {
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
-  assert(tokenExists(tokenId), "Token does not exist.");
+  assert(tokenExists(disclose(tokenId)), "Token does not exist.");
   return tokenOwner.lookup(disclose(tokenId));
 }
 
@@ -107,7 +107,7 @@ export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 // Returns the approved public key for a given token ID
 export circuit getApproved(tokenId: Uint<64>): Field {
   assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
-  assert(tokenExists(tokenId), "Token does not exist.");
+  assert(tokenExists(disclose(tokenId)), "Token does not exist.");
 
   return tokenApprovals.lookup(disclose(tokenId));
 }
@@ -153,7 +153,7 @@ export circuit transfer(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   // Create a hash key from sender and local secret.
   const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
 
-  transferFrom(disclose(senderHashKey), disclose(to), disclose(tokenId));
+  transferFrom(senderHashKey, to, tokenId);
 }
 
 // Transfers ownership of a given token ID from one public key to another
@@ -164,7 +164,7 @@ export circuit transferFrom(fromHashKey: Field, to: ZswapCoinPublicKey, tokenId:
   // Create a hash key from sender and local secret.
   const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
 
-  assert(isApprovedOrOwner(senderHashKey, tokenId), "Not authorized to transfer.");
+  assert(isApprovedOrOwner(disclose(senderHashKey), disclose(tokenId)), "Not authorized to transfer.");
 
   // Create a hash key with shared secret.
   const toHashKey = generateHashKey(to.bytes, getSharedSecret());
@@ -183,8 +183,9 @@ export circuit transferFrom(fromHashKey: Field, to: ZswapCoinPublicKey, tokenId:
 export circuit mint(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();
 
+  // Minting to self (to == senderPublicKey) could reduce privacy: hash links to caller key.
   if(to == senderPublicKey){
-    // Create a hash key from sender and shared secret.
+    // Create a hash key from sender and local secret.
     const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
     // If you mint for yourself we use local secret.
     addTokenTo(disclose(senderHashKey), disclose(tokenId));
@@ -202,36 +203,36 @@ export circuit burn(ownerHashKey: Field, tokenId: Uint<64>): [] {
   removeTokenFrom(disclose(ownerHashKey), disclose(tokenId));
 }
 
-// Create a hash key used as private public key.
+// Create a hash key used as private account.
 export pure circuit generateHashKey(pK1: Bytes<32>, pK2: Bytes<32>): Field {
   return transientHash<[Bytes<32>, Bytes<32>]>([pK1, pK2]);
 }
 
 // =====================
-// Internal helper functions
+// Internal helper circuits
 // =====================
 
 // Returns true if a token exists for the given token ID
 circuit tokenExists(tokenId: Uint<64>): Boolean {
-  return tokenOwner.member(disclose(tokenId));
+  return tokenOwner.member(tokenId);
 }
 
 // Returns true if the spender is the owner, approved, or an operator for the token
 circuit isApprovedOrOwner(spenderHashKey: Field, tokenId: Uint<64>): Boolean {
-  const ownerHashKey = disclose(ownerOf(tokenId));
+  const ownerHashKey = ownerOf(tokenId);
   
   // Check if spender is the owner
-  if (disclose(spenderHashKey == ownerHashKey)) {
+  if (spenderHashKey == ownerHashKey) {
     return true;
   }
   
   // Check if spender is specifically approved for this token
-  if (disclose(tokenApprovals.member(disclose(tokenId)) && spenderHashKey == tokenApprovals.lookup(disclose(tokenId)))) {
+  if (tokenApprovals.member(tokenId) && spenderHashKey == tokenApprovals.lookup(tokenId)) {
     return true;
   }
   
   // Check if spender is an approved operator for all tokens
-  return isApprovedForAll(disclose(ownerHashKey), disclose(spenderHashKey));
+  return isApprovedForAll(ownerHashKey, spenderHashKey);
 }
 
 // Adds a token to a public key, updating ownership and balance
@@ -239,30 +240,30 @@ circuit addTokenTo(toHashKey: Field, tokenId: Uint<64>): [] {
   assert(!tokenExists(tokenId), "Token already exists.");
   assert(toHashKey != default<Field>, "Recipient cannot be empty.");
 
-  tokenOwner.insert(disclose(tokenId), disclose(toHashKey));
+  tokenOwner.insert(tokenId, toHashKey);
   // Initialize the counter if it doesn't exist
-  if (!ownedTokensCount.member(disclose(toHashKey))) {
-    ownedTokensCount.insert(disclose(toHashKey), default<Counter>);
+  if (!ownedTokensCount.member(toHashKey)) {
+    ownedTokensCount.insert(toHashKey, default<Counter>);
   }
   // Increment the owner's token count
-  ownedTokensCount.lookup(disclose(toHashKey)).increment(1);
+  ownedTokensCount.lookup(toHashKey).increment(1);
 }
 
 // Removes a token from a public key, updating ownership and balance
 circuit removeTokenFrom(fromHashKey: Field, tokenId: Uint<64>): [] {
   assert(fromHashKey != default<Field>, "Sender cannot be empty.");
-  assert(fromHashKey == disclose(ownerOf(tokenId)), "Public key is not the owner.");
+  assert(fromHashKey == ownerOf(tokenId), "Public key is not the owner.");
   
   // Decrement the owner's token count
-  ownedTokensCount.lookup(disclose(fromHashKey)).decrement(1);
+  ownedTokensCount.lookup(fromHashKey).decrement(1);
   // Remove the token from the owner
-  tokenOwner.remove(disclose(tokenId));
+  tokenOwner.remove(tokenId);
 }
 
 // Clears approval for a token, if any
 circuit clearApproval(ownerHashKey: Field, tokenId: Uint<64>): [] {
-  assert(ownerHashKey == disclose(ownerOf(tokenId)), "Public key is not the owner.");
-  if (disclose(ownerOf(tokenId)) != default<Field>) {
-    tokenApprovals.remove(disclose(tokenId));
+  assert(ownerHashKey == ownerOf(tokenId), "Public key is not the owner.");
+  if (ownerOf(tokenId) != default<Field>) {
+    tokenApprovals.remove(tokenId);
   }
 }
