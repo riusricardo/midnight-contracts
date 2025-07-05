@@ -1,7 +1,7 @@
 {
   "name": "midnight-contracts-lib",
-  "version": "0.0.1",
-  "description": "Monorepo for Midnight blockchain smart contracts and development tools",
+  "version": "0.1.0",
+  "description": "Essential smart contracts library for Midnight blockchain development",
   "license": "GPL-3.0",
   "author": {
     "name": "Ricardo Rius",
@@ -11,8 +11,19 @@
     "type": "git",
     "url": "https://github.com/riusricardo/midnight-contracts.git"
   },
-  "keywords": ["midnight", "blockchain", "smart-contracts", "monorepo", "compact"],
-  "private": true,
+  "keywords": [
+    "midnight",
+    "blockchain",
+    "smart-contracts",
+    "compact",
+    "nft",
+    "privacy",
+    "zero-knowledge",
+    "zk-proofs",
+    "library",
+    "web3"
+  ],
+  "private": false,
   "workspaces": [
     "contracts",
     "compact"

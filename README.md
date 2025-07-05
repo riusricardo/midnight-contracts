@@ -23,184 +23,164 @@ Use at your own risk. The author assumes no responsibility for any
 damages or losses arising from the use of this software.
 -->
 
-# 🌙 Midnight Contracts
+# 🌙 Midnight Contracts Library
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](./contracts/tokens/nft/src/test/)
+[![NPM Version](https://img.shields.io/npm/v/@midnight-ntwrk/contracts-lib)](https://www.npmjs.com/package/@midnight-ntwrk/contracts-lib)
 
-A comprehensive collection of smart contracts built for the Midnight blockchain using the Compact language. This repository serves as a centralized hub for essential, production-ready contracts that prioritize privacy, security, and modularity.
+A comprehensive **smart contract library** for the Midnight blockchain ecosystem. This library provides production-ready, auditable, and reusable contract implementations written in the Compact language.
 
-## 🎯 Project Objectives
-
-The Midnight Contracts project aims to:
-
-- **Accelerate Development**: Provide ready-to-use, battle-tested smart contracts
-- **Promote Reusability**: Create modular contracts that can be easily integrated into different projects
-- **Maintain Quality**: Implement comprehensive testing and security best practices
-- **Foster Innovation**: Enable developers to build on solid foundations rather than starting from scratch
-
-## 📁 Project Structure
-
-```
-midnight-contracts/
-├── 📄 README.md                    # This file - project overview and guide
-├── 📄 LICENSE                      # GPL-3.0 license
-├── 📄 package.json                 # Root package configuration
-├── 📄 turbo.json                   # Monorepo build configuration
-├── 📁 contracts/                   # Main contracts workspace
-│   ├── 📄 package.json             # Contracts package configuration
-│   ├── 📄 tsconfig.json            # TypeScript configuration
-│   ├── 📄 vitest.config.ts         # Test runner configuration
-│   ├── 📄 eslint.config.mjs        # Linting rules
-│   ├── 📁 src/                     # Generated contract code
-│   │   ├── 📄 index.ts             # Main exports
-│   │   └── 📁 managed/             # Compiled contract artifacts
-│   └── 📁 tokens/                  # Token-related contracts
-│       ├── 📁 nft/                 # NFT contract (Public Ledger)
-│       │   ├── 📄 README.md        # NFT public version documentation
-│       │   └── 📁 src/             # NFT source code and tests
-│       └── 📁 nft-zk/              # NFT-ZK contract (Zero-Knowledge Privacy)
-│           ├── 📄 README.md        # NFT-ZK privacy documentation
-│           └── 📁 src/             # NFT-ZK source code and tests
-├── 📁 compact/                     # Compact compiler tooling
-│   ├── 📄 package.json             # Compiler package configuration
-│   └── 📁 src/                     # Compiler utilities
-└── 📁 reports/                     # Test coverage and CI reports
-```
-
-## 🛠️ Available Contracts
-
-### NFT (Non-Fungible Token) Contracts
-
-We provide **two complete NFT implementations** to meet different privacy and transparency requirements:
-
-#### 🔓 NFT Contract (Public Ledger)
-
-**Location**: [`./contracts/tokens/nft/`](./contracts/tokens/nft/)
-
-A transparent ERC-721 compatible NFT implementation with full public visibility:
-
-- ✅ **Public Transparency**: All ownership and transfers visible on blockchain
-- ✅ **Simple Implementation**: Direct address-to-token mappings
-- ✅ **High Performance**: Efficient operations with minimal overhead
-- ✅ **Full Auditability**: Complete transaction history publicly verifiable
-- ✅ **Standards Compliant**: ERC-721 compatible interface
-
-📖 **[Read the NFT (Public) documentation →](./contracts/tokens/nft/README.md)**
-
-#### 🔐 NFT-ZK Contract (Zero-Knowledge Privacy)
-
-**Location**: [`./contracts/tokens/nft-zk/`](./contracts/tokens/nft-zk/)
-
-A privacy-preserving NFT implementation using zero-knowledge proofs and hash-based ownership:
-
-- ✅ **Ownership Privacy**: Hash-based identities instead of public addresses
-- ✅ **Transfer Privacy**: Zero-knowledge proofs hide transaction details
-- ✅ **Balance Privacy**: Private computation of token holdings
-- ✅ **Standards Compliant**: ERC-721 compatible with privacy enhancements
-
-📖 **[Read the NFT-ZK (Privacy) documentation →](./contracts/tokens/nft-zk/README.md)**
-
-#### 🔄 Choosing Between NFT Variants
-
-| Feature          | NFT (Public)                               | NFT-ZK (Private)                            |
-| ---------------- | ------------------------------------------ | ------------------------------------------- |
-| **Privacy**      | ❌ Fully public                            | ✅ Hash-based privacy                       |
-| **Performance**  | ✅ High efficiency                         | ⚠️ Hashing overhead                         |
-| **Auditability** | ✅ Full transparency                       | ✅ Provable correctness                     |
-| **Use Case**     | Public marketplaces, transparency required | Private collections, confidential transfers |
-
-**Common Features** (Both Implementations):
-
-- ✅ **Minting & Burning**: Create and destroy unique tokens
-- ✅ **Approval System**: Granular permission management
-- ✅ **Balance Tracking**: Efficient ownership queries
-- ✅ **Operator Support**: Delegate management capabilities
-- ✅ **Comprehensive Testing**: 20+ test cases covering all scenarios
-
-### 🚀 More Contracts Coming Soon
-
-## Getting Started
-
-### Prerequisites
-
-- **Node.js** 20+ and **yarn**
-- **Midnight SDK** and development tools
-- **Compact** compiler
+## 🚀 Quick Start
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/riusricardo/midnight-contracts.git
-cd midnight-contracts
+# Using npm
+npm install @midnight-ntwrk/contracts-lib
 
-# Install dependencies
-yarn install
+# Using yarn
+yarn add @midnight-ntwrk/contracts-lib
 
-# Build all contracts
-yarn build
+# Using pnpm
+pnpm add @midnight-ntwrk/contracts-lib
 ```
 
-### Running Tests
+## 🎯 Library Objectives
 
-```bash
-# Run all tests
-yarn test-contracts
+The Midnight Contracts Library aims to:
 
-# Run specific contract tests
-npx vitest run tokens/nft/src/test/nft.test.ts --reporter=verbose      # Public NFT
-npx vitest run tokens/nft-zk/src/test/nft-zk.test.ts --reporter=verbose  # Private NFT-ZK
-```
+- **Accelerate Development**: Provide ready-to-use, battle-tested smart contracts
+- **Ensure Security**: All contracts are thoroughly tested and follow security best practices
+- **Promote Reusability**: Create modular contracts that can be easily integrated into any project
+- **Maintain Quality**: Implement comprehensive testing and continuous integration
+- **Foster Innovation**: Enable developers to build on solid foundations rather than starting from scratch
+- **Preserve Privacy**: Special focus on privacy-preserving contract implementations
 
-### Development Workflow
+## � Available Contracts
 
-```bash
-# Lint code
-yarn lint
+### Token Contracts
 
-# Format code
-yarn format
+#### 🎨 NFT (Non-Fungible Token)
 
-# Build for production
-yarn build
-```
+- **File**: `tokens/nft.compact`
+- **Description**: Standard ERC721-like NFT implementation with full ownership tracking
+- **Features**: Minting, burning, transfers, approvals, operator management
+- **Use Cases**: Art collections, gaming items, certificates, unique assets
 
-## 🧪 Testing Strategy
+#### 🔒 NFT-ZK (Privacy-Preserving NFT)
 
-Our contracts follow rigorous testing practices:
-
-- **Unit Tests**: Every function is thoroughly tested
-
-### Test Coverage
-
-- **NFT Contract (Public)**: 20 comprehensive test cases covering public ledger functionality
-- **NFT-ZK Contract (Privacy)**: 23 comprehensive test cases covering zero-knowledge features
-- **Coverage**: 100% function coverage, 95%+ line coverage across both implementations
-- **Scenarios**: Normal operations, edge cases, error conditions, privacy validation
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how to get involved:
-
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-contract`
-3. **Write** tests for your changes
-4. **Ensure** all tests pass: `yarn test-contracts`
-5. **Submit** a pull request
-
-### Contribution Guidelines
-
-- Follow existing code style and patterns
-- Add comprehensive tests for new functionality
-- Update documentation for API changes
-- Ensure backward compatibility when possible
-- Include security considerations in your changes
+- **File**: `tokens/nft-zk.compact`
+- **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
+- **Features**: Anonymous ownership, private transfers, selective disclosure
+- **Use Cases**: Private collections, confidential assets, anonymous trading
 
 ## 📚 Documentation
 
-- **[NFT Contract (Public) Guide](./contracts/tokens/nft/README.md)**: Complete public NFT documentation
-- **[NFT-ZK Contract (Privacy) Guide](./contracts/tokens/nft-zk/README.md)**: Complete private NFT documentation
+- **[Contract Documentation](./contracts/tokens/)** - Detailed contract docs
+
+## 🚀 Getting Started
+
+### 1. Installation
+
+Add the library to your Midnight project:
+
+```bash
+yarn add @midnight-ntwrk/contracts-lib
+```
+
+### 2. Basic Usage
+
+Import contracts directly into your Compact files:
+
+```compact
+pragma language_version 0.16;
+
+import CompactStandardLibrary;
+import "@midnight-ntwrk/contracts-lib/tokens/nft";
+
+export circuit mintSpecial(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  // Add your custom validation
+  assert(tokenId < 1000, "Special tokens must have ID < 1000");
+
+  // Use the imported NFT functionality
+  mint(to, tokenId);
+}
+```
+
+### 3. Privacy-Preserving Contracts
+
+Use the NFT-ZK contract for privacy-focused applications:
+
+```compact
+pragma language_version 0.16;
+
+import CompactStandardLibrary;
+import "@midnight-ntwrk/contracts-lib/tokens/nft-zk";
+
+// Implement required witness functions
+witness getLocalSecret(): Bytes<32>;
+witness getSharedSecret(): Bytes<32>;
+
+export circuit mintPrivately(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  mint(to, tokenId); // Ownership will be hidden behind hash keys
+}
+
+```
+## 🔧 Development Setup
+
+### Prerequisites
+
+- Node.js 20+
+- Yarn or npm
+- Midnight development environment
+
+### Local Development
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/riusricardo/midnight-contracts.git
+   cd midnight-contracts
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   yarn install
+   ```
+
+3. **Build contracts**
+
+   ```bash
+   yarn compact
+   yarn build
+   ```
+
+4. **Run tests**
+   ```bash
+   yarn test-contracts
+   ```
+   │ ├── 📄 package.json # Contracts package configuration
+   │ ├── 📄 tsconfig.json # TypeScript configuration
+   │ ├── 📄 vitest.config.ts # Test runner configuration
+   │ ├── 📄 eslint.config.mjs # Linting rules
+   │ ├── 📁 src/ # Generated contract code
+   │ │ ├── 📄 index.ts # Main exports
+   │ │ └── 📁 managed/ # Compiled contract artifacts
+   │ └── 📁 tokens/ # Token-related contracts
+   │ ├── 📁 nft/ # NFT contract (Public Ledger)
+   │ │ ├── 📄 README.md # NFT public version documentation
+   │ │ └── 📁 src/ # NFT source code and tests
+   │ └── 📁 nft-zk/ # NFT-ZK contract (Zero-Knowledge Privacy)
+   │ ├── 📄 README.md # NFT-ZK privacy documentation
+   │ └── 📁 src/ # NFT-ZK source code and tests
+   ├── 📁 compact/ # Compact compiler tooling
+   │ ├── 📄 package.json # Compiler package configuration
+   │ └── 📁 src/ # Compiler utilities
+   └── 📁 reports/ # Test coverage and CI reports
+
+````
 
 ## 📄 License
 

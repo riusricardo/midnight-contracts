@@ -12,8 +12,17 @@
     "url": "https://github.com/riusricardo/midnight-contracts.git",
     "directory": "contracts"
   },
-  "keywords": ["midnight", "blockchain", "smart-contracts", "compact"],
-  "private": true,
+  "keywords": [
+    "midnight",
+    "blockchain", 
+    "smart-contracts",
+    "compact",
+    "nft",
+    "privacy",
+    "zero-knowledge",
+    "zk-proofs"
+  ],
+  "private": false,
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -24,8 +33,18 @@
       "require": "./dist/index.js",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./tokens/nft.compact": "./tokens/nft/src/nft.compact",
+    "./tokens/nft-zk.compact": "./tokens/nft-zk/src/nft-zk.compact",
+    "./tokens/*": "./tokens/*/src/*.compact"
   },
+  "files": [
+    "dist/**/*",
+    "tokens/**/*.compact",
+    "tokens/**/CONTRACT.md",
+    "tokens/**/README.md",
+    "src/managed/**/*"
+  ],
   "scripts": {
     "compact": " compactc tokens/nft/src/nft.compact src/managed/nft && compactc tokens/nft-zk/src/nft-zk.compact src/managed/nft-zk ",
     "test": "vitest run",

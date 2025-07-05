@@ -18,6 +18,12 @@ log
 build
 dist
 node_modules
+
+# Generated TypeScript compilation artifacts in source directories
+tokens/**/*.js
+tokens/**/*.d.ts
+tokens/**/*.js.map
+
 .direnv
 result
 dist/
