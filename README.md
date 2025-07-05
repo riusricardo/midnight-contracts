@@ -75,6 +75,7 @@ midnight-contracts/
 We provide **two complete NFT implementations** to meet different privacy and transparency requirements:
 
 #### 🔓 NFT Contract (Public Ledger)
+
 **Location**: [`./contracts/tokens/nft/`](./contracts/tokens/nft/)
 
 A transparent ERC-721 compatible NFT implementation with full public visibility:
@@ -88,6 +89,7 @@ A transparent ERC-721 compatible NFT implementation with full public visibility:
 📖 **[Read the NFT (Public) documentation →](./contracts/tokens/nft/README.md)**
 
 #### 🔐 NFT-ZK Contract (Zero-Knowledge Privacy)
+
 **Location**: [`./contracts/tokens/nft-zk/`](./contracts/tokens/nft-zk/)
 
 A privacy-preserving NFT implementation using zero-knowledge proofs and hash-based ownership:
@@ -95,24 +97,23 @@ A privacy-preserving NFT implementation using zero-knowledge proofs and hash-bas
 - ✅ **Ownership Privacy**: Hash-based identities instead of public addresses
 - ✅ **Transfer Privacy**: Zero-knowledge proofs hide transaction details
 - ✅ **Balance Privacy**: Private computation of token holdings
-- ✅ **Cryptographic Security**: Dual secret system for enhanced privacy
 - ✅ **Standards Compliant**: ERC-721 compatible with privacy enhancements
 
 📖 **[Read the NFT-ZK (Privacy) documentation →](./contracts/tokens/nft-zk/README.md)**
 
 #### 🔄 Choosing Between NFT Variants
 
-| Feature | NFT (Public) | NFT-ZK (Private) |
-|---------|--------------|------------------|
-| **Privacy** | ❌ Fully public | ✅ Hash-based privacy |
-| **Performance** | ✅ High efficiency | ⚠️ ZK overhead |
-| **Complexity** | ✅ Simple | ⚠️ Complex (ZK circuits) |
-| **Auditability** | ✅ Full transparency | ✅ Provable correctness |
-| **Use Case** | Public marketplaces, transparency required | Private collections, confidential transfers |
+| Feature          | NFT (Public)                               | NFT-ZK (Private)                            |
+| ---------------- | ------------------------------------------ | ------------------------------------------- |
+| **Privacy**      | ❌ Fully public                            | ✅ Hash-based privacy                       |
+| **Performance**  | ✅ High efficiency                         | ⚠️ Hashing overhead                         |
+| **Auditability** | ✅ Full transparency                       | ✅ Provable correctness                     |
+| **Use Case**     | Public marketplaces, transparency required | Private collections, confidential transfers |
 
 **Common Features** (Both Implementations):
+
 - ✅ **Minting & Burning**: Create and destroy unique tokens
-- ✅ **Approval System**: Granular permission management  
+- ✅ **Approval System**: Granular permission management
 - ✅ **Balance Tracking**: Efficient ownership queries
 - ✅ **Operator Support**: Delegate management capabilities
 - ✅ **Comprehensive Testing**: 20+ test cases covering all scenarios
@@ -123,9 +124,9 @@ A privacy-preserving NFT implementation using zero-knowledge proofs and hash-bas
 
 ### Prerequisites
 
-- **Node.js** 18+ and **yarn**
+- **Node.js** 20+ and **yarn**
 - **Midnight SDK** and development tools
-- **Compact** compiler (included in this project)
+- **Compact** compiler
 
 ### Installation
 
@@ -170,7 +171,6 @@ yarn build
 Our contracts follow rigorous testing practices:
 
 - **Unit Tests**: Every function is thoroughly tested
-- **Integration Tests**: Complex scenarios and edge cases
 
 ### Test Coverage
 
@@ -186,7 +186,7 @@ We welcome contributions! Here's how to get involved:
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/amazing-contract`
 3. **Write** tests for your changes
-4. **Ensure** all tests pass: `yarn test`
+4. **Ensure** all tests pass: `yarn test-contracts`
 5. **Submit** a pull request
 
 ### Contribution Guidelines

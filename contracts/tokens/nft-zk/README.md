@@ -44,24 +44,26 @@ The NFT-ZK contract provides the following functionality with cryptographic priv
 ## Key Characteristics
 
 ### Zero-Knowledge Architecture
+
 - **Hash-Based Ownership**: Token owners are identified by cryptographic hash keys, not public addresses
 - **Dual Secret System**: Uses both local secrets (for self-ownership) and shared secrets (for transfers/operators)
 - **Private State**: Sensitive data stored in private witness values
 - **Zero-Knowledge Proofs**: All operations verified cryptographically without revealing private information
 
 ### Privacy Features
+
 - **Ownership Privacy**: Real owner identities hidden behind hash commitments
 - **Transfer Privacy**: Token movements don't reveal sender/receiver identities
 - **Balance Privacy**: Token holdings computed privately from hash-based mappings
 - **Operator Privacy**: Approval relationships hidden from public view
 
 ### Comparison with Standard NFT
-| Feature | NFT (Public) | NFT-ZK (Private) |
-|---------|--------------|------------------|
-| Ownership Privacy | ❌ Public addresses | ✅ Hash-based identities |
-| Transfer Privacy | ❌ Public transactions | ✅ Zero-knowledge proofs |
-| Balance Privacy | ❌ Public balances | ✅ Private hash lookups |
-| Implementation | Simple mappings | Complex ZK circuits |
+
+| Feature           | NFT (Public)           | NFT-ZK (Private)         |
+| ----------------- | ---------------------- | ------------------------ |
+| Ownership Privacy | ❌ Public addresses    | ✅ Hash-based identities |
+| Transfer Privacy  | ❌ Public transactions | ✅ Zero-knowledge proofs |
+| Balance Privacy   | ❌ Public balances     | ✅ Private hash lookups  |
 
 ## Contract Features
 
@@ -165,6 +167,7 @@ The contract uses a sophisticated dual-secret system:
 2. **Shared Secret**: Used for tokens received from others or for operator relationships
 
 This allows the contract to:
+
 - Distinguish between self-owned and received tokens
 - Maintain privacy while enabling transfers
 - Support complex approval scenarios privately

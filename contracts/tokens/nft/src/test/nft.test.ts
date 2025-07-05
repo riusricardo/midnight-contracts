@@ -35,11 +35,10 @@ setNetworkId(NetworkId.Undeployed);
 describe("NFT Contract Tests", () => {
   it("should mint a new token", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
     const tokenId = 1n;
 
-    const result = simulator.mint(alice, tokenId);
-    expect(result).toBeDefined();
+    simulator.mint(alice, tokenId);
 
     // Check that Alice owns the token
     const owner = simulator.ownerOf(tokenId);
@@ -52,11 +51,11 @@ describe("NFT Contract Tests", () => {
 
   it("should transfer token between users", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
     const tokenId = 1n;
 
-    // Mint a token to Alice (the system/current user)
+    // Mint a token to Alice
     simulator.mint(alice, tokenId);
 
     // Alice transfers to Bob
@@ -76,8 +75,8 @@ describe("NFT Contract Tests", () => {
 
   it("should approve and get approved address", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
     const tokenId = 1n;
 
     // Mint a token to Alice
@@ -93,8 +92,8 @@ describe("NFT Contract Tests", () => {
 
   it("should set approval for all", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
 
     // Alice sets Bob as operator for all her tokens
     simulator.setApprovalForAll(bob, true);
@@ -106,7 +105,7 @@ describe("NFT Contract Tests", () => {
 
   it("should burn a token", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
     const tokenId = 1n;
 
     // Mint a token to Alice
@@ -125,8 +124,8 @@ describe("NFT Contract Tests", () => {
 
   it("should mint multiple tokens with different IDs", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
 
     simulator.mint(alice, 1n);
     simulator.mint(bob, 2n);
@@ -147,7 +146,7 @@ describe("NFT Contract Tests", () => {
 
   it("should handle non-existent tokens correctly", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
 
     // Try to get owner of non-existent token
     expect(() => simulator.ownerOf(999n)).toThrow();
@@ -158,8 +157,8 @@ describe("NFT Contract Tests", () => {
 
   it("should prevent minting duplicate token IDs", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
     const tokenId = 1n;
 
     // Mint first token
@@ -171,9 +170,9 @@ describe("NFT Contract Tests", () => {
 
   it("should clear approvals on transfer", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
-    const charlie = simulator.getUserPublicKey("Charlie");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
+    const charlie = simulator.createPublicKey("Charlie");
     const tokenId = 1n;
 
     // Alice mints and approves Bob (Alice is the caller)
@@ -192,8 +191,8 @@ describe("NFT Contract Tests", () => {
 
   it("should clear approvals on burn", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
     const tokenId = 1n;
 
     // Alice mints and approves Bob (Alice is the caller)
@@ -213,7 +212,7 @@ describe("NFT Contract Tests", () => {
 
   it("should not allow approving yourself", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
     const tokenId = 1n;
 
     simulator.mint(alice, tokenId);
@@ -224,7 +223,7 @@ describe("NFT Contract Tests", () => {
 
   it("should not allow setting yourself as operator", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
 
     // Alice tries to set herself as operator (Alice is the caller)
     expect(() => simulator.setApprovalForAll(alice, true)).toThrow();
@@ -232,7 +231,7 @@ describe("NFT Contract Tests", () => {
 
   it("should handle zero balance correctly", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
 
     // Check balance of user with no tokens
     const balance = simulator.balanceOf(alice);
@@ -241,8 +240,8 @@ describe("NFT Contract Tests", () => {
 
   it("should maintain correct balances after multiple operations", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
 
     // Alice mints 3 tokens
     simulator.mint(alice, 1n);
@@ -266,9 +265,9 @@ describe("NFT Contract Tests", () => {
 
   it("should handle operator approvals correctly", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
-    const charlie = simulator.getUserPublicKey("Charlie");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
+    const charlie = simulator.createPublicKey("Charlie");
 
     // Initial state - no approvals
     expect(simulator.isApprovedForAll(alice, bob)).toBe(false);
@@ -287,9 +286,9 @@ describe("NFT Contract Tests", () => {
 
   it("should handle complex approval and transfer scenarios", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
-    const charlie = simulator.getUserPublicKey("Charlie");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
+    const charlie = simulator.createPublicKey("Charlie");
     const tokenId = 1n;
 
     // Alice mints a token
@@ -318,7 +317,7 @@ describe("NFT Contract Tests", () => {
 
   it("should handle large token IDs and edge values", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
+    const alice = simulator.createPublicKey("Alice");
 
     // Test with very large token ID
     const largeTokenId = 18446744073709551615n; // Near max uint64
@@ -337,8 +336,8 @@ describe("NFT Contract Tests", () => {
 
   it("should handle sequential minting and burning operations", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
 
     // Mint tokens 1-5 to Alice
     for (let i = 1n; i <= 5n; i++) {
@@ -369,10 +368,10 @@ describe("NFT Contract Tests", () => {
 
   it("should correctly handle mixed approval types in transfer scenarios", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
-    const charlie = simulator.getUserPublicKey("Charlie");
-    const dave = simulator.getUserPublicKey("Dave");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
+    const charlie = simulator.createPublicKey("Charlie");
+    const dave = simulator.createPublicKey("Dave");
 
     // Alice mints two tokens
     simulator.mint(alice, 1n);
@@ -399,9 +398,9 @@ describe("NFT Contract Tests", () => {
 
   it("should handle rapid approval changes correctly", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.getUserPublicKey("Alice");
-    const bob = simulator.getUserPublicKey("Bob");
-    const charlie = simulator.getUserPublicKey("Charlie");
+    const alice = simulator.createPublicKey("Alice");
+    const bob = simulator.createPublicKey("Bob");
+    const charlie = simulator.createPublicKey("Charlie");
     const tokenId = 1n;
 
     simulator.mint(alice, tokenId);
@@ -425,5 +424,33 @@ describe("NFT Contract Tests", () => {
 
     simulator.setApprovalForAll(charlie, true);
     expect(simulator.isApprovedForAll(alice, charlie)).toBe(true);
+  });
+
+  it("should test transfer circuit functionality", () => {
+    const simulator = new NftSimulator();
+    const alice = simulator.createPublicKey("Alice");
+    const charlie = simulator.createPublicKey("Charlie");
+
+    // Verify hash key consistency in transfer circuit
+    const tokenId1 = 1n;
+    simulator.mint(alice, tokenId1);
+
+    // Transfer from Alice to Charlie
+    simulator.transfer(charlie, tokenId1);
+    const charlieFirstToken = simulator.ownerOf(tokenId1);
+
+    // Transfer another token from Alice to Charlie
+    const tokenId2 = 2n;
+    simulator.mint(alice, tokenId2);
+    simulator.transfer(charlie, tokenId2);
+    const charlieSecondToken = simulator.ownerOf(tokenId2);
+
+    // Both tokens should have the same hash key for Charlie (consistency check)
+    expect(charlieFirstToken).toBe(charlieSecondToken);
+    expect(charlieFirstToken).toBe(charlie);
+
+    // Final balance verification
+    expect(simulator.balanceOf(alice)).toBe(0n);
+    expect(simulator.balanceOf(charlie)).toBe(2n); // Charlie has 2 tokens
   });
 });

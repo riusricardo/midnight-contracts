@@ -44,17 +44,19 @@ The public NFT contract provides the following functionality with full transpare
 ## Key Characteristics
 
 ### Public Ledger Architecture
+
 - **Full Transparency**: All token ownership, transfers, and approvals are stored on the public blockchain
 - **Direct Address Storage**: Token owners and approved addresses are stored as public keys directly
 - **Public Verification**: Anyone can verify token ownership and approval status
 - **Simple Implementation**: Straightforward mapping of tokens to public addresses
 
 ### Comparison with NFT-ZK
-| Feature | NFT (Public) | NFT-ZK (Private) |
-|---------|--------------|------------------|
-| Ownership Privacy | ❌ Public | ✅ Private (hash-based) |
-| Transfer Privacy | ❌ Public | ✅ Private (zero-knowledge) |
-| Balance Privacy | ❌ Public | ✅ Private (computed privately) |
+
+| Feature           | NFT (Public) | NFT-ZK (Private)                |
+| ----------------- | ------------ | ------------------------------- |
+| Ownership Privacy | ❌ Public    | ✅ Private (hash-based)         |
+| Transfer Privacy  | ❌ Public    | ✅ Private (zero-knowledge)     |
+| Balance Privacy   | ❌ Public    | ✅ Private (computed privately) |
 
 ## Contract Features
 

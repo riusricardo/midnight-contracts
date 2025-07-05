@@ -37,11 +37,8 @@ import {
 } from "../../../../src/managed/nft/contract/index.cjs";
 import { type NftPrivateState, witnesses } from "../witnesses.js";
 import { toHex, fromHex, isHex } from "@midnight-ntwrk/midnight-js-utils";
-
-// Import TextEncoder/TextDecoder for Node.js compatibility
 import { TextEncoder } from "util";
 
-// This simulator uses the actual compiled NFT contract
 export class NftSimulator {
   readonly contract: Contract<NftPrivateState>;
   private baseContext: CircuitContext<NftPrivateState>;
@@ -53,7 +50,7 @@ export class NftSimulator {
       currentContractState,
       currentZswapLocalState
     } = this.contract.initialState(
-      constructorContext({}, this.getUserPublicKey("Alice"))
+      constructorContext({}, this.createPublicKey("Alice"))
     );
     this.baseContext = {
       currentPrivateState,
@@ -66,14 +63,150 @@ export class NftSimulator {
     };
   }
 
-  // Get the current public key from the circuit context
-  public getUserPublicKey(userName: string): CoinPublicKey {
-    // Generate a 64-character hex string from the user name for compatibility
-    // Create a hash-like representation from the username
+  // === Contract State Access ===
+
+  public getLedger(): Ledger {
+    return ledger(this.baseContext.originalState.data);
+  }
+
+  public getPrivateState(): NftPrivateState {
+    return this.baseContext.currentPrivateState;
+  }
+
+  // === Contract Methods ===
+
+  /**
+   * Returns the balance count (bigint) - matches contract interface
+   */
+  public balanceOf(owner: CoinPublicKey): bigint {
+    const result = this.contract.circuits.balanceOf(
+      this.baseContext,
+      this.publicKeyToBytes(owner)
+    );
+    return result.result;
+  }
+
+  /**
+   * Returns the owner public key - matches contract interface
+   */
+  public ownerOf(tokenId: bigint): CoinPublicKey {
+    const result = this.contract.circuits.ownerOf(this.baseContext, tokenId);
+    return this.bytesToPublicKey(result.result);
+  }
+
+  /**
+   * Approve an address for a token
+   */
+  public approve(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.approve(
+      this.baseContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Returns the approved address for a token
+   */
+  public getApproved(tokenId: bigint): CoinPublicKey {
+    const result = this.contract.circuits.getApproved(
+      this.baseContext,
+      tokenId
+    );
+    return this.bytesToPublicKey(result.result);
+  }
+
+  /**
+   * Set approval for all tokens
+   */
+  public setApprovalForAll(operator: CoinPublicKey, approved: boolean): void {
+    const result = this.contract.impureCircuits.setApprovalForAll(
+      this.baseContext,
+      this.publicKeyToBytes(operator),
+      approved
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Returns approval status (boolean) - matches contract interface
+   */
+  public isApprovedForAll(
+    owner: CoinPublicKey,
+    operator: CoinPublicKey
+  ): boolean {
+    const result = this.contract.circuits.isApprovedForAll(
+      this.baseContext,
+      this.publicKeyToBytes(owner),
+      this.publicKeyToBytes(operator)
+    );
+    return result.result;
+  }
+
+  /**
+   * Convenient transfer function that automatically gets current owner hash
+   * and transfers token to the specified recipient
+   */
+  public transfer(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.transfer(
+      this.baseContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Transfer token from one address to another
+   */
+  public transferFrom(
+    from: CoinPublicKey,
+    to: CoinPublicKey,
+    tokenId: bigint
+  ): void {
+    const result = this.contract.impureCircuits.transferFrom(
+      this.baseContext,
+      this.publicKeyToBytes(from),
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Mint a token to the given address
+   */
+  public mint(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.mint(
+      this.baseContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Burn a token owned by the address
+   */
+  public burn(owner: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.burn(
+      this.baseContext,
+      this.publicKeyToBytes(owner),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  // === Utility Methods ===
+
+  /**
+   * Create a deterministic public key from a username for testing
+   */
+  public createPublicKey(userName: string): CoinPublicKey {
     const encoded = new TextEncoder().encode(userName);
     const hexChars = [];
 
-    // Convert each byte to hex and pad to ensure we get 64 characters
     for (let i = 0; i < 32; i++) {
       const byte =
         i < encoded.length
@@ -85,172 +218,33 @@ export class NftSimulator {
     return hexChars.join("") as CoinPublicKey;
   }
 
-  // Helper function to convert string to 32-byte format
-  private stringToBytes(str: string): { bytes: Uint8Array } {
+  /**
+   * Convert string to 32-byte format
+   */
+  public stringToBytes(str: string): { bytes: Uint8Array } {
     const encoded = new TextEncoder().encode(str);
     const bytes = new Uint8Array(32);
-    bytes.set(encoded.slice(0, 32)); // Truncate if too long, pad with zeros if too short
+    bytes.set(encoded.slice(0, 32));
     return { bytes };
   }
 
-  // Helper function to convert bytes to hex string (64 characters)
-  private bytesToHexString(bytesObj: { bytes: Uint8Array }): string {
-    return toHex(bytesObj.bytes);
-  }
-
-  // Helper function to convert hex string to bytes
-  private hexStringToBytes(hexStr: string): { bytes: Uint8Array } {
-    // Validate hex input
-    if (!isHex(hexStr)) {
-      throw new Error(`Invalid hex string: ${hexStr}`);
+  /**
+   * Convert CoinPublicKey to bytes
+   */
+  public publicKeyToBytes(publicKey: CoinPublicKey): { bytes: Uint8Array } {
+    if (isHex(publicKey)) {
+      const bytes = fromHex(publicKey.padStart(64, "0"));
+      const result = new Uint8Array(32);
+      result.set(bytes.slice(0, 32));
+      return { bytes: result };
     }
-    const bytes = fromHex(hexStr.padStart(64, "0")); // Ensure 64 characters (32 bytes)
-    const result = new Uint8Array(32);
-    result.set(bytes.slice(0, 32)); // Take first 32 bytes
-    return { bytes: result };
+    return this.stringToBytes(publicKey);
   }
 
-  public getLedger(): Ledger {
-    return ledger(this.baseContext.originalState.data);
-  }
-
-  public getPrivateState(): NftPrivateState {
-    return this.baseContext.currentPrivateState;
-  }
-
-  public mint(to: CoinPublicKey, tokenId: bigint): [] {
-    // Use base context for mint operations
-    // Check if 'to' is a hex string (64 characters of hex) and convert appropriately
-    const toBytes =
-      to.length === 64 && /^[0-9a-fA-F]+$/.test(to)
-        ? this.hexStringToBytes(to)
-        : this.stringToBytes(to);
-
-    const result = this.contract.impureCircuits.mint(
-      this.baseContext,
-      toBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-    return [];
-  }
-
-  public ownerOf(tokenId: bigint): CoinPublicKey {
-    const result = this.contract.circuits.ownerOf(this.baseContext, tokenId);
-    // Convert the result bytes to a hex string to match the format of getUserPublicKey
-    return this.bytesToHexString(result.result) as CoinPublicKey;
-  }
-
-  public balanceOf(owner: CoinPublicKey): bigint {
-    // Check if 'owner' is a hex string and convert appropriately
-    const ownerBytes =
-      owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
-        ? this.hexStringToBytes(owner)
-        : this.stringToBytes(owner);
-
-    const result = this.contract.circuits.balanceOf(
-      this.baseContext,
-      ownerBytes
-    );
-    return result.result;
-  }
-
-  public approve(to: CoinPublicKey, tokenId: bigint): [] {
-    // Call the contract approve method directly
-    const toBytes =
-      to.length === 64 && /^[0-9a-fA-F]+$/.test(to)
-        ? this.hexStringToBytes(to)
-        : this.stringToBytes(to);
-
-    const result = this.contract.impureCircuits.approve(
-      this.baseContext,
-      toBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-    return [];
-  }
-
-  public getApproved(tokenId: bigint): CoinPublicKey | undefined {
-    const result = this.contract.circuits.getApproved(
-      this.baseContext,
-      tokenId
-    );
-    return this.bytesToHexString(result.result) as CoinPublicKey;
-  }
-
-  public setApprovalForAll(operator: CoinPublicKey, approved: boolean): [] {
-    const operatorBytes =
-      operator.length === 64 && /^[0-9a-fA-F]+$/.test(operator)
-        ? this.hexStringToBytes(operator)
-        : this.stringToBytes(operator);
-
-    const result = this.contract.impureCircuits.setApprovalForAll(
-      this.baseContext,
-      operatorBytes,
-      approved
-    );
-    this.baseContext = result.context;
-    return [];
-  }
-
-  public isApprovedForAll(
-    owner: CoinPublicKey,
-    operator: CoinPublicKey
-  ): boolean {
-    const ownerBytes =
-      owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
-        ? this.hexStringToBytes(owner)
-        : this.stringToBytes(owner);
-    const operatorBytes =
-      operator.length === 64 && /^[0-9a-fA-F]+$/.test(operator)
-        ? this.hexStringToBytes(operator)
-        : this.stringToBytes(operator);
-
-    const result = this.contract.circuits.isApprovedForAll(
-      this.baseContext,
-      ownerBytes,
-      operatorBytes
-    );
-    return result.result;
-  }
-
-  public transferFrom(
-    from: CoinPublicKey,
-    to: CoinPublicKey,
-    tokenId: bigint
-  ): [] {
-    const fromBytes =
-      from.length === 64 && /^[0-9a-fA-F]+$/.test(from)
-        ? this.hexStringToBytes(from)
-        : this.stringToBytes(from);
-    const toBytes =
-      to.length === 64 && /^[0-9a-fA-F]+$/.test(to)
-        ? this.hexStringToBytes(to)
-        : this.stringToBytes(to);
-
-    const result = this.contract.impureCircuits.transferFrom(
-      this.baseContext,
-      fromBytes,
-      toBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-    return [];
-  }
-
-  public burn(owner: CoinPublicKey, tokenId: bigint): [] {
-    const ownerBytes =
-      owner.length === 64 && /^[0-9a-fA-F]+$/.test(owner)
-        ? this.hexStringToBytes(owner)
-        : this.stringToBytes(owner);
-
-    const result = this.contract.impureCircuits.burn(
-      this.baseContext,
-      ownerBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-    return [];
+  /**
+   * Convert bytes to public key
+   */
+  public bytesToPublicKey(bytesObj: { bytes: Uint8Array }): CoinPublicKey {
+    return toHex(bytesObj.bytes) as CoinPublicKey;
   }
 }

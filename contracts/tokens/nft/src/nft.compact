@@ -106,6 +106,14 @@ export circuit isApprovedForAll(owner: ZswapCoinPublicKey, operator: ZswapCoinPu
   return operatorApprovals.lookup(disclose(hashKey));
 }
 
+// Transfers ownership of a given token ID from you to another account
+export circuit transfer(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+
+  transferFrom(disclose(senderPublicKey), disclose(to), disclose(tokenId));
+}
+
 // Transfers ownership of a given token ID from one public key to another
 export circuit transferFrom(from: ZswapCoinPublicKey, to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();

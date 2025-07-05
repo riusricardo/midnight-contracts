@@ -46,10 +46,6 @@ import { fromHex, isHex } from "@midnight-ntwrk/midnight-js-utils";
 // Import TextEncoder for Node.js compatibility
 import { TextEncoder } from "util";
 
-/**
- * Clean NFT-ZK contract simulator that exposes raw contract interfaces
- * and lets tests handle hash key mapping explicitly for maximum transparency.
- */
 export class NftZkSimulator {
   readonly contract: Contract<NftZkPrivateState>;
   private baseContext: CircuitContext<NftZkPrivateState>;
@@ -78,6 +74,149 @@ export class NftZkSimulator {
         sampleContractAddress()
       )
     };
+  }
+
+  // === Contract State Access ===
+
+  public getLedger(): Ledger {
+    return ledger(this.baseContext.originalState.data);
+  }
+
+  public getPrivateState(): NftZkPrivateState {
+    return this.baseContext.currentPrivateState;
+  }
+
+  public getLocalSecret(): Uint8Array {
+    return this.getPrivateState().local_secret;
+  }
+
+  public getSharedSecret(): Uint8Array {
+    return this.getPrivateState().shared_secret;
+  }
+
+  // === Raw Contract Methods (Return Actual Contract Types) ===
+
+  /**
+   * Returns the balance count (bigint) - matches contract interface
+   */
+  public balanceOf(owner: CoinPublicKey): bigint {
+    const result = this.contract.circuits.balanceOf(
+      this.baseContext,
+      this.publicKeyToBytes(owner)
+    );
+    return result.result;
+  }
+
+  /**
+   * Returns the hash key of the token owner (bigint) - matches contract interface
+   */
+  public ownerOf(tokenId: bigint): bigint {
+    const result = this.contract.circuits.ownerOf(this.baseContext, tokenId);
+    return result.result;
+  }
+
+  /**
+   * Approve an address (as bytes) for a token
+   */
+  public approve(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.approve(
+      this.baseContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Returns the hash key of the approved address (bigint) - matches contract interface
+   */
+  public getApproved(tokenId: bigint): bigint {
+    const result = this.contract.circuits.getApproved(
+      this.baseContext,
+      tokenId
+    );
+    return result.result;
+  }
+
+  /**
+   * Set approval for all tokens
+   */
+  public setApprovalForAll(operator: CoinPublicKey, approved: boolean): void {
+    const result = this.contract.impureCircuits.setApprovalForAll(
+      this.baseContext,
+      this.publicKeyToBytes(operator),
+      approved
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Returns approval status (boolean) - matches contract interface
+   */
+  public isApprovedForAll(
+    ownerHashKey: bigint,
+    operatorHashKey: bigint
+  ): boolean {
+    const result = this.contract.circuits.isApprovedForAll(
+      this.baseContext,
+      ownerHashKey,
+      operatorHashKey
+    );
+    return result.result;
+  }
+
+  /**
+   * Convenient transfer function that automatically gets current owner hash
+   * and transfers token to the specified recipient
+   */
+  public transfer(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.transfer(
+      this.baseContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Transfer token from hash key to bytes address
+   */
+  public transferFrom(
+    fromHashKey: bigint,
+    to: CoinPublicKey,
+    tokenId: bigint
+  ): void {
+    const result = this.contract.impureCircuits.transferFrom(
+      this.baseContext,
+      fromHashKey,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Mint a token to the given bytes address
+   */
+  public mint(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.mint(
+      this.baseContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    );
+    this.baseContext = result.context;
+  }
+
+  /**
+   * Burn a token owned by the hash key
+   */
+  public burn(ownerHashKey: bigint, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.burn(
+      this.baseContext,
+      ownerHashKey,
+      tokenId
+    );
+    this.baseContext = result.context;
   }
 
   // === Utility Methods ===
@@ -124,172 +263,33 @@ export class NftZkSimulator {
   }
 
   /**
-   * Convert bigint hash to hex string
-   */
-  public hashToHex(hash: bigint): string {
-    return "0x" + hash.toString(16).padStart(64, "0");
-  }
-
-  /**
-   * Convert hex string to hash key (bigint)
-   */
-  public hexToHash(hexString: string): bigint {
-    const cleanHex = hexString.startsWith("0x")
-      ? hexString.slice(2)
-      : hexString;
-    return BigInt("0x" + cleanHex);
-  }
-
-  /**
    * Generate hash key using the contract's pure circuit
    */
   public generateHashKey(publicKey: Uint8Array, secret: Uint8Array): bigint {
     return pureCircuits.generateHashKey(publicKey, secret);
   }
 
-  // === Contract State Access ===
-
-  public getLedger(): Ledger {
-    return ledger(this.baseContext.originalState.data);
-  }
-
-  public getPrivateState(): NftZkPrivateState {
-    return this.baseContext.currentPrivateState;
-  }
-
-  public getLocalSecret(): Uint8Array {
-    return this.getPrivateState().local_secret;
-  }
-
-  public getSharedSecret(): Uint8Array {
-    return this.getPrivateState().shared_secret;
-  }
-
-  // === Raw Contract Methods (Return Actual Contract Types) ===
-
   /**
-   * Returns the balance count (bigint) - matches contract interface
+   * Generate owner hash key (uses local secret)
    */
-  public balanceOf(ownerBytes: { bytes: Uint8Array }): bigint {
-    const result = this.contract.circuits.balanceOf(
-      this.baseContext,
-      ownerBytes
+  public generateLocalUserHashKey(publicKey: CoinPublicKey): bigint {
+    const publicKeyBytes = this.publicKeyToBytes(publicKey);
+    const hashKey = this.generateHashKey(
+      publicKeyBytes.bytes,
+      this.getLocalSecret()
     );
-    return result.result;
+    return hashKey;
   }
 
   /**
-   * Returns the hash key of the token owner (bigint) - matches contract interface
+   * Generate operator hash key (uses shared secret)
    */
-  public ownerOf(tokenId: bigint): bigint {
-    const result = this.contract.circuits.ownerOf(this.baseContext, tokenId);
-    return result.result;
-  }
-
-  /**
-   * Approve an address (as bytes) for a token
-   */
-  public approve(toBytes: { bytes: Uint8Array }, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.approve(
-      this.baseContext,
-      toBytes,
-      tokenId
+  public generateSharedUserHashKey(publicKey: CoinPublicKey): bigint {
+    const publicKeyBytes = this.publicKeyToBytes(publicKey);
+    const hashKey = this.generateHashKey(
+      publicKeyBytes.bytes,
+      this.getSharedSecret()
     );
-    this.baseContext = result.context;
-  }
-
-  /**
-   * Returns the hash key of the approved address (bigint) - matches contract interface
-   */
-  public getApproved(tokenId: bigint): bigint {
-    const result = this.contract.circuits.getApproved(
-      this.baseContext,
-      tokenId
-    );
-    return result.result;
-  }
-
-  /**
-   * Set approval for all tokens
-   */
-  public setApprovalForAll(
-    operatorBytes: { bytes: Uint8Array },
-    approved: boolean
-  ): void {
-    const result = this.contract.impureCircuits.setApprovalForAll(
-      this.baseContext,
-      operatorBytes,
-      approved
-    );
-    this.baseContext = result.context;
-  }
-
-  /**
-   * Returns approval status (boolean) - matches contract interface
-   */
-  public isApprovedForAll(
-    ownerHashKey: bigint,
-    operatorHashKey: bigint
-  ): boolean {
-    const result = this.contract.circuits.isApprovedForAll(
-      this.baseContext,
-      ownerHashKey,
-      operatorHashKey
-    );
-    return result.result;
-  }
-
-  /**
-   * Convenient transfer function that automatically gets current owner hash
-   * and transfers token to the specified recipient
-   */
-  public transfer(toBytes: { bytes: Uint8Array }, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.transfer(
-      this.baseContext,
-      toBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-  }
-
-  /**
-   * Transfer token from hash key to bytes address
-   */
-  public transferFrom(
-    fromHashKey: bigint,
-    toBytes: { bytes: Uint8Array },
-    tokenId: bigint
-  ): void {
-    const result = this.contract.impureCircuits.transferFrom(
-      this.baseContext,
-      fromHashKey,
-      toBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-  }
-
-  /**
-   * Mint a token to the given bytes address
-   */
-  public mint(toBytes: { bytes: Uint8Array }, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.mint(
-      this.baseContext,
-      toBytes,
-      tokenId
-    );
-    this.baseContext = result.context;
-  }
-
-  /**
-   * Burn a token owned by the hash key
-   */
-  public burn(ownerHashKey: bigint, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.burn(
-      this.baseContext,
-      ownerHashKey,
-      tokenId
-    );
-    this.baseContext = result.context;
+    return hashKey;
   }
 }

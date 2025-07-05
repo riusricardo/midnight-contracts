@@ -202,7 +202,7 @@ export circuit burn(ownerHashKey: Field, tokenId: Uint<64>): [] {
   removeTokenFrom(disclose(ownerHashKey), disclose(tokenId));
 }
 
-// This is not a safe implementation because the hash is not unique and can be guessed.
+// Create a hash key used as private public key.
 export pure circuit generateHashKey(pK1: Bytes<32>, pK2: Bytes<32>): Field {
   return transientHash<[Bytes<32>, Bytes<32>]>([pK1, pK2]);
 }
