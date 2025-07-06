@@ -204,7 +204,7 @@ export class NftSimulator {
    */
   public createPublicKey(userName: string): CoinPublicKey {
     const encoded = new TextEncoder().encode(userName);
-    const hexChars = [];
+    const hexChars: string[] = [];
 
     for (let i = 0; i < 32; i++) {
       const byte =

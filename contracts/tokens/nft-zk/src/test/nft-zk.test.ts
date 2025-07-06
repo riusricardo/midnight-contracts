@@ -29,7 +29,6 @@ import {
   NetworkId,
   setNetworkId
 } from "@midnight-ntwrk/midnight-js-network-id";
-import type { CoinPublicKey } from "@midnight-ntwrk/compact-runtime";
 
 setNetworkId(NetworkId.Undeployed);
 
@@ -149,9 +148,6 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Mint token to Alice
     simulator.mintAdmin(alice, tokenId);
-
-    // Get Alice's hash key as current owner
-    const aliceOwnerHashKey = simulator.ownerOf(tokenId);
 
     // Burn the token using explicit hash key
     simulator.burnAdmin(tokenId);
@@ -330,8 +326,6 @@ describe("NFT-ZK Contract Tests", () => {
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
     expect(simulator.getApproved(tokenId)).toBe(bobOperatorHashKey);
 
-    // Admin burns Alice's token (only admin can burn)
-    const aliceOwnerHashKey = simulator.ownerOf(tokenId);
     simulator.burnAdmin(tokenId);
 
     // Both token and approval should be gone
@@ -385,12 +379,10 @@ describe("NFT-ZK Contract Tests", () => {
     expect(simulator.balanceOf(bob)).toBe(1n);
 
     // Admin burns Alice's token (only admin can burn)
-    const aliceOwnerHashKey2 = simulator.ownerOf(2n);
     simulator.burnAdmin(2n);
     expect(simulator.balanceOf(alice)).toBe(1n);
 
     // Admin burns Bob's token (only admin can burn)
-    const bobOwnerHashKey = simulator.ownerOf(1n);
     simulator.burnAdmin(1n);
     expect(simulator.balanceOf(bob)).toBe(0n);
   });

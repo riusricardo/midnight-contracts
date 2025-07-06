@@ -154,13 +154,12 @@ describe("NFT Contract Tests", () => {
 
   it("should handle non-existent tokens correctly", () => {
     const simulator = new NftSimulator();
-    const alice = simulator.createPublicKey("Alice");
 
     // Try to get owner of non-existent token
     expect(() => simulator.ownerOf(999n)).toThrow();
 
     // Try to burn non-existent token
-    expect(() => simulator.burnAdmin(alice, 999n)).toThrow();
+    expect(() => simulator.burnAdmin(999n)).toThrow();
   });
 
   it("should prevent minting duplicate token IDs", () => {
