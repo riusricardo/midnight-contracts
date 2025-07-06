@@ -175,10 +175,10 @@ export class NftSimulator {
   }
 
   /**
-   * Mint a token to the given address
+   * Mint a token to the given address (admin only)
    */
-  public mint(to: CoinPublicKey, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.mint(
+  public mintAdmin(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.mintAdmin(
       this.baseContext,
       this.publicKeyToBytes(to),
       tokenId
@@ -187,12 +187,11 @@ export class NftSimulator {
   }
 
   /**
-   * Burn a token owned by the address
+   * Burn a token by ID (admin only)
    */
-  public burn(owner: CoinPublicKey, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.burn(
+  public burnAdmin(tokenId: bigint): void {
+    const result = this.contract.impureCircuits.burnAdmin(
       this.baseContext,
-      this.publicKeyToBytes(owner),
       tokenId
     );
     this.baseContext = result.context;

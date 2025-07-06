@@ -63,17 +63,40 @@ The Midnight Contracts Library aims to:
 
 #### 🎨 NFT (Non-Fungible Token)
 
-- **File**: `tokens/nft.compact`
+- **Module**: `modules/nft.compact`
 - **Description**: Standard ERC721-like NFT implementation with full ownership tracking
 - **Features**: Minting, burning, transfers, approvals, operator management
 - **Use Cases**: Art collections, gaming items, certificates, unique assets
 
 #### 🔒 NFT-ZK (Privacy-Preserving NFT)
 
-- **File**: `tokens/nft-zk.compact`
+- **Module**: `modules/nft-zk.compact`
 - **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
 - **Features**: Anonymous ownership, private transfers, selective disclosure
 - **Use Cases**: Private collections, confidential assets, anonymous trading
+
+#### 🛠️ NFT-Base (Shared Utilities)
+
+- **Module**: `modules/nft-base.compact`
+- **Description**: Common utilities and helper functions for NFT implementations
+- **Features**: Validation circuits, hash generation, reusable logic
+- **Use Cases**: Building custom NFT variants, extending functionality
+
+## 🏗️ Module Architecture
+
+The library is organized using Compact's module system for maximum reusability:
+
+```
+contracts/src/modules/
+├── index.compact          # Main library entry point
+├── tokens.compact         # Token contracts module
+├── nft.compact           # Standard NFT module
+├── nft-zk.compact        # Zero-knowledge NFT module
+├── nft-base.compact      # Shared NFT utilities
+└── examples/             # Usage examples
+    ├── example-nft-usage.compact
+    └── example-nft-zk-usage.compact
+```
 
 ## 📚 Documentation
 
@@ -91,41 +114,103 @@ yarn add @midnight-ntwrk/contracts-lib
 
 ### 2. Basic Usage
 
-Import contracts directly into your Compact files:
+Import contracts directly into your Compact files using the new module system:
 
 ```compact
 pragma language_version 0.16;
 
 import CompactStandardLibrary;
-import "@midnight-ntwrk/contracts-lib/tokens/nft";
+import "./modules/Nft";
 
-export circuit mintSpecial(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  // Add your custom validation
-  assert(tokenId < 1000, "Special tokens must have ID < 1000");
+// Export selected circuits from the Nft module.
+// We aren't exporting 'burn' or 'mint' because they have no authorization checks.
+export { 
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
+
+export ledger contractAdmin: ZswapCoinPublicKey;
+
+// Set the public key of the contract admin.
+constructor() {
+  contractAdmin = ownPublicKey();
+}
+
+// Example: Only Admin can mint tokens.
+export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
 
   // Use the imported NFT functionality
   mint(to, tokenId);
+}
+
+// Example: Only admin can burn tokens.
+export circuit burnAdmin(tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
+
+  // Get the owner of the token and then burn it
+  const tokenOwner = ownerOf(tokenId);
+  burn(tokenOwner, tokenId);
 }
 ```
 
 ### 3. Privacy-Preserving Contracts
 
-Use the NFT-ZK contract for privacy-focused applications:
+Use the NFT-ZK module for privacy-focused applications:
 
 ```compact
 pragma language_version 0.16;
 
 import CompactStandardLibrary;
-import "@midnight-ntwrk/contracts-lib/tokens/nft-zk";
+import "./modules/NftZk";
 
-// Implement required witness functions
-witness getLocalSecret(): Bytes<32>;
-witness getSharedSecret(): Bytes<32>;
+// Export selected circuits from the NftZk module.
+// We aren't exporting 'burn' or 'mint' because they have no authorization checks.
+export { 
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom,
+  generateHashKey
+};
 
-export circuit mintPrivately(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  mint(to, tokenId); // Ownership will be hidden behind hash keys
+export ledger contractAdmin: ZswapCoinPublicKey;
+
+// Set the public key of the contract admin.
+constructor() {
+  contractAdmin = ownPublicKey();
 }
 
+// Example: Only Admin can mint tokens.
+export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
+
+  // Use the imported NFT-ZK functionality
+  mint(to, tokenId);
+}
+
+// Example: Only admin can burn tokens.
+export circuit burnAdmin(tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
+
+  // Get the owner hash key of the token and then burn it
+  const tokenOwnerHashKey = ownerOf(tokenId);
+  burn(tokenOwnerHashKey, tokenId);
+}
 ```
 ## 🔧 Development Setup
 

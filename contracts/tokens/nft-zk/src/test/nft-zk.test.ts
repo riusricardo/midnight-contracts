@@ -34,6 +34,13 @@ import type { CoinPublicKey } from "@midnight-ntwrk/compact-runtime";
 setNetworkId(NetworkId.Undeployed);
 
 describe("NFT-ZK Contract Tests", () => {
+  /*
+   * NOTE: All mint and burn operations in these tests are performed by the contract admin.
+   * The simulator is initialized with Alice as the deployer/admin, so only the admin
+   * can mint new tokens or burn existing tokens, regardless of who owns them.
+   * Regular users can only transfer tokens they own or have approval for.
+   */
+
   it("should mint a new token and validate hash key directly", () => {
     const simulator = new NftZkSimulator();
     const alice = simulator.createPublicKey("Alice");
@@ -43,7 +50,7 @@ describe("NFT-ZK Contract Tests", () => {
     const aliceOwnerHashKey = simulator.generateLocalUserHashKey(alice);
 
     // Mint token to Alice
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Check that ownerOf returns the exact hash key (bigint)
     const actualOwnerHashKey = simulator.ownerOf(tokenId);
@@ -62,7 +69,7 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint token to Alice
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Generate expected hash key for Bob as operator
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
@@ -112,7 +119,7 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint token to Alice
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Get Alice's hash key as current owner
     const aliceOwnerHashKey = simulator.ownerOf(tokenId);
@@ -141,13 +148,13 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint token to Alice
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Get Alice's hash key as current owner
     const aliceOwnerHashKey = simulator.ownerOf(tokenId);
 
     // Burn the token using explicit hash key
-    simulator.burn(aliceOwnerHashKey, tokenId);
+    simulator.burnAdmin(tokenId);
 
     // Verify Alice's balance decreased
     const aliceBalance = simulator.balanceOf(alice);
@@ -200,7 +207,7 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint token to Alice
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Generate all required hash keys
     const aliceOwnerHashKey = simulator.generateLocalUserHashKey(alice);
@@ -247,9 +254,9 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Mint tokens
 
-    simulator.mint(alice, 1n); // Alice mints to herself (local secret)
-    simulator.mint(bob, 2n); // Alice mints to Bob (shared secret)
-    simulator.mint(alice, 3n); // Alice mints to herself again (local secret)
+    simulator.mintAdmin(alice, 1n); // Alice mints to herself (local secret)
+    simulator.mintAdmin(bob, 2n); // Alice mints to Bob (shared secret)
+    simulator.mintAdmin(alice, 3n); // Alice mints to herself again (local secret)
 
     // Check ownership using hash keys
     expect(simulator.ownerOf(1n)).toBe(aliceOwnerHashKey);
@@ -268,7 +275,7 @@ describe("NFT-ZK Contract Tests", () => {
     expect(() => simulator.ownerOf(999n)).toThrow();
 
     // Try to burn non-existent token
-    expect(() => simulator.burn(123n, 999n)).toThrow();
+    expect(() => simulator.burnAdmin(999n)).toThrow();
   });
 
   it("should prevent minting duplicate token IDs", () => {
@@ -278,10 +285,10 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint first token
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Try to mint with same ID again
-    expect(() => simulator.mint(bob, tokenId)).toThrow();
+    expect(() => simulator.mintAdmin(bob, tokenId)).toThrow();
   });
 
   it("should clear approvals on transfer", () => {
@@ -292,7 +299,7 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Alice mints and approves Bob
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     simulator.approve(bob, tokenId);
 
@@ -315,7 +322,7 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Alice mints and approves Bob
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     simulator.approve(bob, tokenId);
 
@@ -323,9 +330,9 @@ describe("NFT-ZK Contract Tests", () => {
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
     expect(simulator.getApproved(tokenId)).toBe(bobOperatorHashKey);
 
-    // Alice burns the token
+    // Admin burns Alice's token (only admin can burn)
     const aliceOwnerHashKey = simulator.ownerOf(tokenId);
-    simulator.burn(aliceOwnerHashKey, tokenId);
+    simulator.burnAdmin(tokenId);
 
     // Both token and approval should be gone
     expect(() => simulator.ownerOf(tokenId)).toThrow();
@@ -338,7 +345,7 @@ describe("NFT-ZK Contract Tests", () => {
     const tokenId = 1n;
 
     // Alice mints a token
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Alice tries to approve herself - this should fail at contract level
     expect(() => simulator.approve(alice, tokenId)).toThrow();
@@ -366,9 +373,9 @@ describe("NFT-ZK Contract Tests", () => {
     const alice = simulator.createPublicKey("Alice");
     const bob = simulator.createPublicKey("Bob");
     // Alice mints 3 tokens to herself
-    simulator.mint(alice, 1n);
-    simulator.mint(alice, 2n);
-    simulator.mint(alice, 3n);
+    simulator.mintAdmin(alice, 1n);
+    simulator.mintAdmin(alice, 2n);
+    simulator.mintAdmin(alice, 3n);
     expect(simulator.balanceOf(alice)).toBe(3n);
 
     // Alice transfers 1 to Bob
@@ -377,14 +384,14 @@ describe("NFT-ZK Contract Tests", () => {
     expect(simulator.balanceOf(alice)).toBe(2n);
     expect(simulator.balanceOf(bob)).toBe(1n);
 
-    // Alice burns 1 token
+    // Admin burns Alice's token (only admin can burn)
     const aliceOwnerHashKey2 = simulator.ownerOf(2n);
-    simulator.burn(aliceOwnerHashKey2, 2n);
+    simulator.burnAdmin(2n);
     expect(simulator.balanceOf(alice)).toBe(1n);
 
-    // Bob burns his token
+    // Admin burns Bob's token (only admin can burn)
     const bobOwnerHashKey = simulator.ownerOf(1n);
-    simulator.burn(bobOwnerHashKey, 1n);
+    simulator.burnAdmin(1n);
     expect(simulator.balanceOf(bob)).toBe(0n);
   });
 
@@ -427,7 +434,7 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Test with very large token ID
     const largeTokenId = 18446744073709551615n; // Near max uint64
-    simulator.mint(alice, largeTokenId);
+    simulator.mintAdmin(alice, largeTokenId);
 
     // Get the actual owner hash from the contract
     const largeTokenOwnerHash = simulator.ownerOf(largeTokenId);
@@ -436,7 +443,7 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Test with token ID 1 (contract doesn't allow 0)
     const smallTokenId = 1n;
-    simulator.mint(alice, smallTokenId);
+    simulator.mintAdmin(alice, smallTokenId);
 
     const smallTokenOwnerHash = simulator.ownerOf(smallTokenId);
     expect(typeof smallTokenOwnerHash).toBe("bigint");
@@ -452,7 +459,7 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Mint tokens 1-5 to Alice
     for (let i = 1n; i <= 5n; i++) {
-      simulator.mint(alice, i);
+      simulator.mintAdmin(alice, i);
     }
     expect(simulator.balanceOf(alice)).toBe(5n);
 
@@ -465,8 +472,8 @@ describe("NFT-ZK Contract Tests", () => {
     expect(simulator.balanceOf(bob)).toBe(3n);
 
     // Burn some tokens
-    simulator.burn(simulator.ownerOf(2n), 2n);
-    simulator.burn(simulator.ownerOf(1n), 1n);
+    simulator.burnAdmin(2n);
+    simulator.burnAdmin(1n);
 
     expect(simulator.balanceOf(alice)).toBe(1n);
     expect(simulator.balanceOf(bob)).toBe(2n);
@@ -484,8 +491,8 @@ describe("NFT-ZK Contract Tests", () => {
     const charlie = simulator.createPublicKey("Charlie");
     const dave = simulator.createPublicKey("Dave");
     // Alice mints two tokens
-    simulator.mint(alice, 1n);
-    simulator.mint(alice, 2n);
+    simulator.mintAdmin(alice, 1n);
+    simulator.mintAdmin(alice, 2n);
 
     const daveOperatorHashKey = simulator.generateSharedUserHashKey(dave);
 
@@ -514,7 +521,7 @@ describe("NFT-ZK Contract Tests", () => {
     const bob = simulator.createPublicKey("Bob");
     const charlie = simulator.createPublicKey("Charlie");
     const tokenId = 1n;
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     const aliceOwnerHashKey = simulator.generateLocalUserHashKey(alice);
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
@@ -555,7 +562,7 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Verify hash key consistency in transfer circuit
     const tokenId1 = 1n;
-    simulator.mint(alice, tokenId1);
+    simulator.mintAdmin(alice, tokenId1);
 
     // Transfer from Alice to Charlie
     simulator.transfer(charlie, tokenId1);
@@ -563,7 +570,7 @@ describe("NFT-ZK Contract Tests", () => {
 
     // Transfer another token from Alice to Charlie
     const tokenId2 = 2n;
-    simulator.mint(alice, tokenId2);
+    simulator.mintAdmin(alice, tokenId2);
     simulator.transfer(charlie, tokenId2);
     const charlieSecondTokenHash = simulator.ownerOf(tokenId2);
 

@@ -23,8 +23,8 @@
  * damages or losses arising from the use of this software.
  */
 {
-  "include": ["src/**/*.ts", "tokens/**/*.ts"],
-  "exclude": ["dist"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "tokens/**/*.ts", "tokens/**/*.js", "tokens/**/*.d.ts"],
   "compilerOptions": {
     "outDir": "dist",
     "declaration": true,

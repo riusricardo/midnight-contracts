@@ -33,12 +33,20 @@ import {
 setNetworkId(NetworkId.Undeployed);
 
 describe("NFT Contract Tests", () => {
+  /*
+   * NOTE: All mint and burn operations in these tests are performed by the contract admin.
+   * The simulator is initialized with Alice as the deployer/admin, so only the admin
+   * can mint new tokens or burn existing tokens, regardless of who owns them.
+   * Regular users can only transfer tokens they own or have approval for.
+   */
+
   it("should mint a new token", () => {
     const simulator = new NftSimulator();
     const alice = simulator.createPublicKey("Alice");
     const tokenId = 1n;
 
-    simulator.mint(alice, tokenId);
+    // Admin mints a token to Alice
+    simulator.mintAdmin(alice, tokenId);
 
     // Check that Alice owns the token
     const owner = simulator.ownerOf(tokenId);
@@ -55,8 +63,8 @@ describe("NFT Contract Tests", () => {
     const bob = simulator.createPublicKey("Bob");
     const tokenId = 1n;
 
-    // Mint a token to Alice
-    simulator.mint(alice, tokenId);
+    // Admin mints a token to Alice
+    simulator.mintAdmin(alice, tokenId);
 
     // Alice transfers to Bob
     simulator.transferFrom(alice, bob, tokenId);
@@ -80,7 +88,7 @@ describe("NFT Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint a token to Alice
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Alice approves Bob to transfer her token
     simulator.approve(bob, tokenId);
@@ -108,11 +116,11 @@ describe("NFT Contract Tests", () => {
     const alice = simulator.createPublicKey("Alice");
     const tokenId = 1n;
 
-    // Mint a token to Alice
-    simulator.mint(alice, tokenId);
+    // Admin mints a token to Alice
+    simulator.mintAdmin(alice, tokenId);
 
-    // Alice burns her token
-    simulator.burn(alice, tokenId);
+    // Admin burns Alice's token (only admin can burn)
+    simulator.burnAdmin(tokenId);
 
     // Check that Alice's balance decreased
     const balance = simulator.balanceOf(alice);
@@ -127,9 +135,9 @@ describe("NFT Contract Tests", () => {
     const alice = simulator.createPublicKey("Alice");
     const bob = simulator.createPublicKey("Bob");
 
-    simulator.mint(alice, 1n);
-    simulator.mint(bob, 2n);
-    simulator.mint(alice, 3n);
+    simulator.mintAdmin(alice, 1n);
+    simulator.mintAdmin(bob, 2n);
+    simulator.mintAdmin(alice, 3n);
 
     // Check ownership
     expect(simulator.ownerOf(1n)).toBe(alice);
@@ -152,7 +160,7 @@ describe("NFT Contract Tests", () => {
     expect(() => simulator.ownerOf(999n)).toThrow();
 
     // Try to burn non-existent token
-    expect(() => simulator.burn(alice, 999n)).toThrow();
+    expect(() => simulator.burnAdmin(alice, 999n)).toThrow();
   });
 
   it("should prevent minting duplicate token IDs", () => {
@@ -162,10 +170,10 @@ describe("NFT Contract Tests", () => {
     const tokenId = 1n;
 
     // Mint first token
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Try to mint with same ID again
-    expect(() => simulator.mint(bob, tokenId)).toThrow();
+    expect(() => simulator.mintAdmin(bob, tokenId)).toThrow();
   });
 
   it("should clear approvals on transfer", () => {
@@ -176,7 +184,7 @@ describe("NFT Contract Tests", () => {
     const tokenId = 1n;
 
     // Alice mints and approves Bob (Alice is the caller)
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
     simulator.approve(bob, tokenId);
 
     // Verify approval
@@ -195,15 +203,15 @@ describe("NFT Contract Tests", () => {
     const bob = simulator.createPublicKey("Bob");
     const tokenId = 1n;
 
-    // Alice mints and approves Bob (Alice is the caller)
-    simulator.mint(alice, tokenId);
+    // Alice mints and approves Bob (Admin is the caller)
+    simulator.mintAdmin(alice, tokenId);
     simulator.approve(bob, tokenId);
 
     // Verify approval
     expect(simulator.getApproved(tokenId)).toBe(bob);
 
-    // Alice burns the token (Alice is the caller)
-    simulator.burn(alice, tokenId);
+    // Admin burns Alice's token (only admin can burn)
+    simulator.burnAdmin(tokenId);
 
     // Both token and approval should be gone
     expect(() => simulator.ownerOf(tokenId)).toThrow();
@@ -215,7 +223,7 @@ describe("NFT Contract Tests", () => {
     const alice = simulator.createPublicKey("Alice");
     const tokenId = 1n;
 
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Alice tries to approve herself (Alice is the caller)
     expect(() => simulator.approve(alice, tokenId)).toThrow();
@@ -243,10 +251,10 @@ describe("NFT Contract Tests", () => {
     const alice = simulator.createPublicKey("Alice");
     const bob = simulator.createPublicKey("Bob");
 
-    // Alice mints 3 tokens
-    simulator.mint(alice, 1n);
-    simulator.mint(alice, 2n);
-    simulator.mint(alice, 3n);
+    // Admin mints 3 tokens to Alice
+    simulator.mintAdmin(alice, 1n);
+    simulator.mintAdmin(alice, 2n);
+    simulator.mintAdmin(alice, 3n);
     expect(simulator.balanceOf(alice)).toBe(3n);
 
     // Alice transfers 1 to Bob (Alice is the caller)
@@ -254,12 +262,12 @@ describe("NFT Contract Tests", () => {
     expect(simulator.balanceOf(alice)).toBe(2n);
     expect(simulator.balanceOf(bob)).toBe(1n);
 
-    // Alice burns 1 token (Alice is the caller)
-    simulator.burn(alice, 2n);
+    // Admin burns Alice's token (only admin can burn)
+    simulator.burnAdmin(2n);
     expect(simulator.balanceOf(alice)).toBe(1n);
 
-    // Bob burns his token (Bob is the caller)
-    simulator.burn(bob, 1n);
+    // Admin burns Bob's token (only admin can burn)
+    simulator.burnAdmin(1n);
     expect(simulator.balanceOf(bob)).toBe(0n);
   });
 
@@ -292,7 +300,7 @@ describe("NFT Contract Tests", () => {
     const tokenId = 1n;
 
     // Alice mints a token
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Alice sets Bob as an operator for all her tokens
     simulator.setApprovalForAll(bob, true);
@@ -321,14 +329,14 @@ describe("NFT Contract Tests", () => {
 
     // Test with very large token ID
     const largeTokenId = 18446744073709551615n; // Near max uint64
-    simulator.mint(alice, largeTokenId);
+    simulator.mintAdmin(alice, largeTokenId);
 
     expect(simulator.ownerOf(largeTokenId)).toBe(alice);
     expect(simulator.balanceOf(alice)).toBe(1n);
 
     // Test with token ID 1 (contract doesn't allow 0)
     const smallTokenId = 1n;
-    simulator.mint(alice, smallTokenId);
+    simulator.mintAdmin(alice, smallTokenId);
 
     expect(simulator.ownerOf(smallTokenId)).toBe(alice);
     expect(simulator.balanceOf(alice)).toBe(2n);
@@ -339,9 +347,9 @@ describe("NFT Contract Tests", () => {
     const alice = simulator.createPublicKey("Alice");
     const bob = simulator.createPublicKey("Bob");
 
-    // Mint tokens 1-5 to Alice
+    // Admin mints tokens 1-5 to Alice
     for (let i = 1n; i <= 5n; i++) {
-      simulator.mint(alice, i);
+      simulator.mintAdmin(alice, i);
     }
     expect(simulator.balanceOf(alice)).toBe(5n);
 
@@ -353,9 +361,9 @@ describe("NFT Contract Tests", () => {
     expect(simulator.balanceOf(alice)).toBe(2n);
     expect(simulator.balanceOf(bob)).toBe(3n);
 
-    // Burn some tokens
-    simulator.burn(alice, 2n);
-    simulator.burn(bob, 1n);
+    // Admin burns some tokens (only admin can burn)
+    simulator.burnAdmin(2n);
+    simulator.burnAdmin(1n);
 
     expect(simulator.balanceOf(alice)).toBe(1n);
     expect(simulator.balanceOf(bob)).toBe(2n);
@@ -374,8 +382,8 @@ describe("NFT Contract Tests", () => {
     const dave = simulator.createPublicKey("Dave");
 
     // Alice mints two tokens
-    simulator.mint(alice, 1n);
-    simulator.mint(alice, 2n);
+    simulator.mintAdmin(alice, 1n);
+    simulator.mintAdmin(alice, 2n);
 
     // Alice sets Bob as operator for all
     simulator.setApprovalForAll(bob, true);
@@ -403,7 +411,7 @@ describe("NFT Contract Tests", () => {
     const charlie = simulator.createPublicKey("Charlie");
     const tokenId = 1n;
 
-    simulator.mint(alice, tokenId);
+    simulator.mintAdmin(alice, tokenId);
 
     // Rapid approval changes
     simulator.approve(bob, tokenId);
@@ -433,7 +441,7 @@ describe("NFT Contract Tests", () => {
 
     // Verify hash key consistency in transfer circuit
     const tokenId1 = 1n;
-    simulator.mint(alice, tokenId1);
+    simulator.mintAdmin(alice, tokenId1);
 
     // Transfer from Alice to Charlie
     simulator.transfer(charlie, tokenId1);
@@ -441,7 +449,7 @@ describe("NFT Contract Tests", () => {
 
     // Transfer another token from Alice to Charlie
     const tokenId2 = 2n;
-    simulator.mint(alice, tokenId2);
+    simulator.mintAdmin(alice, tokenId2);
     simulator.transfer(charlie, tokenId2);
     const charlieSecondToken = simulator.ownerOf(tokenId2);
 

@@ -196,10 +196,10 @@ export class NftZkSimulator {
   }
 
   /**
-   * Mint a token to the given bytes address
+   * Mint a token to the given bytes address (admin only)
    */
-  public mint(to: CoinPublicKey, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.mint(
+  public mintAdmin(to: CoinPublicKey, tokenId: bigint): void {
+    const result = this.contract.impureCircuits.mintAdmin(
       this.baseContext,
       this.publicKeyToBytes(to),
       tokenId
@@ -208,12 +208,11 @@ export class NftZkSimulator {
   }
 
   /**
-   * Burn a token owned by the hash key
+   * Burn a token by ID (admin only)
    */
-  public burn(ownerHashKey: bigint, tokenId: bigint): void {
-    const result = this.contract.impureCircuits.burn(
+  public burnAdmin(tokenId: bigint): void {
+    const result = this.contract.impureCircuits.burnAdmin(
       this.baseContext,
-      ownerHashKey,
       tokenId
     );
     this.baseContext = result.context;
