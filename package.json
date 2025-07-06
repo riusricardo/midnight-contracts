@@ -23,7 +23,7 @@
     "library",
     "web3"
   ],
-  "private": false,
+  "private": true,
   "workspaces": [
     "contracts",
     "compact"

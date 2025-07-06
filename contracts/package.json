@@ -46,7 +46,7 @@
     "src/managed/**/*"
   ],
   "scripts": {
-    "compact": " compactc tokens/nft/src/nft.compact src/managed/nft && compactc tokens/nft-zk/src/nft-zk.compact src/managed/nft-zk ",
+    "compact": "export COMPACT_PATH=$COMPACT_PATH:./node_modules:../node_modules && compactc tokens/nft/src/nft.compact src/managed/nft && compactc tokens/nft-zk/src/nft-zk.compact src/managed/nft-zk ",
     "test": "vitest run",
     "test:compile": "yarn compact && vitest run",
     "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./tokens/nft/src/nft.compact ./dist && cp ./tokens/nft-zk/src/nft-zk.compact ./dist && mkdir ./dist/modules/ && cp ./tokens/nft-zk/src/modules/NftZk.compact ./dist/modules/ && cp ./tokens/nft/src/modules/Nft.compact ./dist/modules/",

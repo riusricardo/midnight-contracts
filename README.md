@@ -37,13 +37,13 @@ A comprehensive **smart contract library** for the Midnight blockchain ecosystem
 
 ```bash
 # Using npm
-npm install @midnight-ntwrk/contracts-lib
+npm install [TBD]
 
 # Using yarn
-yarn add @midnight-ntwrk/contracts-lib
+yarn add [TBD]
 
 # Using pnpm
-pnpm add @midnight-ntwrk/contracts-lib
+pnpm add [TBD]
 ```
 
 ## 🎯 Library Objectives
@@ -63,40 +63,17 @@ The Midnight Contracts Library aims to:
 
 #### 🎨 NFT (Non-Fungible Token)
 
-- **Module**: `modules/nft.compact`
+- **Module**: `contracts/tokens/nft/src/modules/Nft.compact`
 - **Description**: Standard ERC721-like NFT implementation with full ownership tracking
 - **Features**: Minting, burning, transfers, approvals, operator management
 - **Use Cases**: Art collections, gaming items, certificates, unique assets
 
 #### 🔒 NFT-ZK (Privacy-Preserving NFT)
 
-- **Module**: `modules/nft-zk.compact`
+- **Module**: `contracts/tokens/nft-zk/src/modules/NftZk.compact`
 - **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
 - **Features**: Anonymous ownership, private transfers, selective disclosure
 - **Use Cases**: Private collections, confidential assets, anonymous trading
-
-#### 🛠️ NFT-Base (Shared Utilities)
-
-- **Module**: `modules/nft-base.compact`
-- **Description**: Common utilities and helper functions for NFT implementations
-- **Features**: Validation circuits, hash generation, reusable logic
-- **Use Cases**: Building custom NFT variants, extending functionality
-
-## 🏗️ Module Architecture
-
-The library is organized using Compact's module system for maximum reusability:
-
-```
-contracts/src/modules/
-├── index.compact          # Main library entry point
-├── tokens.compact         # Token contracts module
-├── nft.compact           # Standard NFT module
-├── nft-zk.compact        # Zero-knowledge NFT module
-├── nft-base.compact      # Shared NFT utilities
-└── examples/             # Usage examples
-    ├── example-nft-usage.compact
-    └── example-nft-zk-usage.compact
-```
 
 ## 📚 Documentation
 
@@ -109,7 +86,7 @@ contracts/src/modules/
 Add the library to your Midnight project:
 
 ```bash
-yarn add @midnight-ntwrk/contracts-lib
+yarn add [TBD]
 ```
 
 ### 2. Basic Usage
@@ -124,7 +101,7 @@ import "./modules/Nft";
 
 // Export selected circuits from the Nft module.
 // We aren't exporting 'burn' or 'mint' because they have no authorization checks.
-export { 
+export {
   balanceOf,
   ownerOf,
   approve,
@@ -174,7 +151,7 @@ import "./modules/NftZk";
 
 // Export selected circuits from the NftZk module.
 // We aren't exporting 'burn' or 'mint' because they have no authorization checks.
-export { 
+export {
   balanceOf,
   ownerOf,
   approve,
@@ -212,6 +189,7 @@ export circuit burnAdmin(tokenId: Uint<64>): [] {
   burn(tokenOwnerHashKey, tokenId);
 }
 ```
+
 ## 🔧 Development Setup
 
 ### Prerequisites
@@ -246,26 +224,6 @@ export circuit burnAdmin(tokenId: Uint<64>): [] {
    ```bash
    yarn test-contracts
    ```
-   │ ├── 📄 package.json # Contracts package configuration
-   │ ├── 📄 tsconfig.json # TypeScript configuration
-   │ ├── 📄 vitest.config.ts # Test runner configuration
-   │ ├── 📄 eslint.config.mjs # Linting rules
-   │ ├── 📁 src/ # Generated contract code
-   │ │ ├── 📄 index.ts # Main exports
-   │ │ └── 📁 managed/ # Compiled contract artifacts
-   │ └── 📁 tokens/ # Token-related contracts
-   │ ├── 📁 nft/ # NFT contract (Public Ledger)
-   │ │ ├── 📄 README.md # NFT public version documentation
-   │ │ └── 📁 src/ # NFT source code and tests
-   │ └── 📁 nft-zk/ # NFT-ZK contract (Zero-Knowledge Privacy)
-   │ ├── 📄 README.md # NFT-ZK privacy documentation
-   │ └── 📁 src/ # NFT-ZK source code and tests
-   ├── 📁 compact/ # Compact compiler tooling
-   │ ├── 📄 package.json # Compiler package configuration
-   │ └── 📁 src/ # Compiler utilities
-   └── 📁 reports/ # Test coverage and CI reports
-
-````
 
 ## 📄 License
 
@@ -283,3 +241,7 @@ This project is licensed under the **GNU General Public License v3.0** - see the
 **Built with ❤️ for the Midnight ecosystem**
 
 _Empowering developers to build privacy-first applications with confidence._
+
+```
+
+```
