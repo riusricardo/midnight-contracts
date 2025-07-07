@@ -40,7 +40,7 @@ A comprehensive **smart contract library** for the Midnight blockchain ecosystem
 This isn't just contracts - it's a **modular library**:
 
 - 📦 **Import modules**: Get core functionality.
-- 🔧 **Add your logic**: Wrap circuits with your won logic or export them directly from your contract.
+- 🔧 **Add your logic**: Wrap circuits with your own logic or export them directly from your contract.
 - 🎨 **Unlimited flexibility**: Create any governance, payment, or access control system
 
 ### The Modular Pattern
