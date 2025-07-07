@@ -18,20 +18,30 @@ Use at your own risk. The author assumes no responsibility for any
 damages or losses arising from the use of this software.
 -->
 
-# 🌙 Midnight Contracts Library
+# <img src="https://midnight.network/brand-hub/logo-compact-dark.svg" alt="Midnight Network" width="24" height="24"> Midnight Contracts Library
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](./contracts/tokens/nft/src/test/)
 [![NPM Version](https://img.shields.io/npm/v/@midnight-ntwrk/contracts-lib)](https://www.npmjs.com/package/@midnight-ntwrk/contracts-lib)
 
-A comprehensive **modular smart contract library** for the Midnight blockchain ecosystem. This library provides production-ready, reusable **modules** that you import and customize with your own authorization logic.
+## 🎯 Library Objectives
+
+A comprehensive **smart contract library** for the Midnight blockchain ecosystem. This library provides production-ready, auditable, and reusable contract implementations written in the Compact language.
+
+- **Accelerate Development**: Use ready-to-integrate, well-tested contract modules for a wide range of use cases
+- **Promote Reusability**: Import and compose modular contracts for tokens, governance, privacy, and more
+- **Ensure Security**: All modules are designed with security and best practices in mind
+- **Enable Customization**: Build your own authorization, business logic, and workflows on top of robust primitives
+- **Foster Innovation**: Focus on your application logic, not reinventing contract basics
+- **Maintain Quality**: Comprehensive testing, documentation, and continuous integration
+- **Support Privacy**: Special focus on privacy-preserving and zero-knowledge contract patterns
 
 ## 🎯 Library Architecture
 
 This isn't just contracts - it's a **modular library**:
 
-- 📦 **Import modules**: Get core functionality (`mint`, `burn`, `transfer`, etc.)
-- 🔧 **Add your logic**: Wrap circuits with your authorization patterns
+- 📦 **Import modules**: Get core functionality.
+- 🔧 **Add your logic**: Wrap circuits with your won logic or export them directly from your contract.
 - 🎨 **Unlimited flexibility**: Create any governance, payment, or access control system
 
 ### The Modular Pattern
@@ -90,6 +100,24 @@ npm install git+https://github.com/riusricardo/midnight-contracts.git
 yarn add git+https://github.com/riusricardo/midnight-contracts.git
 ```
 
+## ⚙️ Compact Compiler Path Setup
+
+The Compact compiler (`compactc`) needs to know where to find imported libraries, especially when using dependencies installed in `node_modules`.
+
+**Set the `COMPACT_PATH` environment variable before compiling:**
+
+```bash
+export COMPACT_PATH="$COMPACT_PATH:./node_modules:../node_modules"
+```
+
+- This ensures the compiler can resolve imports from your project's `node_modules` and any parent directory's `node_modules`.
+- You can add this line to your shell profile (e.g., `.bashrc`, `.zshrc`) or run it in your terminal before running any Compact compilation commands.
+- The provided `yarn compact` and `npm run compact` scripts already set this variable automatically.
+
+**Why is this needed?**
+
+Compact modules and libraries are distributed via npm and installed in `node_modules`. Setting `COMPACT_PATH` allows the compiler to find and use these dependencies just like with JavaScript/TypeScript projects.
+
 ### Basic Usage
 
 ```compact
@@ -119,18 +147,6 @@ export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 
 // 3. Your wrapped version replaces the raw circuit
 ```
-
-## 🎯 Library Objectives
-
-This modular library aims to:
-
-- **Provide Building Blocks**: Give you the core circuits (`mint`, `burn`, `transfer`) to build with
-- **Enable Customization**: YOU decide authorization - admin-only, payment-based, governance, etc.
-- **Ensure Security**: Core circuits are thoroughly tested and battle-hardened
-- **Promote Reusability**: Import the same module into different projects with different rules
-- **Maintain Quality**: Comprehensive testing and continuous integration
-- **Foster Innovation**: Build custom authorization instead of reinventing token logic
-- **Preserve Privacy**: Special focus on zero-knowledge and privacy-preserving implementations
 
 ## 📦 Available Modules
 
@@ -222,101 +238,43 @@ export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   // Verify payment (implementation would check actual payment)
   assert(paymentAmount() >= mintPrice, "Insufficient payment");
   
-  // Process payment to treasury
-  processPayment(treasury, mintPrice);
-  
-  // Mint the token
-  mint(to, tokenId);
-}
+  // Process payment to treasury 
+  ...
 ```
 
-### Integration in Your Project
-
-1. **Add Dependency**:
-```json
-{
-  "dependencies": {
-    "midnight-contracts": "git+https://github.com/riusricardo/midnight-contracts.git"
-  }
-}
-```
-
-## 🏗️ Development
-
-### Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/riusricardo/midnight-contracts.git
-cd midnight-contracts
-
-# Install dependencies
-yarn install
-
-# Build all contracts
-yarn build
-
-# Run tests
-yarn test-contracts
-```
-
-### Project Structure
-
-```
-midnight-contracts/
-├── contracts/                    # Main contracts package
-│   ├── tokens/                   # Token implementations
-│   │   ├── nft/                  # Standard NFT
-│   │   │   ├── src/
-│   │   │   │   ├── nft.compact   # Main contract
-│   │   │   │   ├── modules/      # Core modules
-│   │   │   │   └── test/         # Test suite
-│   │   │   └── CONTRACT.md       # Documentation
-│   │   └── nft-zk/               # Privacy NFT
-│   │       ├── src/
-│   │       │   ├── nft-zk.compact # Main contract
-│   │       │   ├── modules/       # Privacy modules
-│   │       │   └── test/          # Test suite
-│   │       └── CONTRACT.md        # Documentation
-│   ├── src/                      # Compiled outputs
-│   │   └── managed/              # Generated contracts
-│   └── dist/                     # Distribution files
-├── compact/                      # Compact compiler tools
-└── package.json                  # Root package (workspace)
-```
-
-## 🏁 Quick Development Setup
+## 🔧 Development Setup
 
 ### Prerequisites
-- Node.js 18+ 
-- Yarn package manager
-- Git
 
-### Setup Steps
+- Node.js 20+
+- Yarn or npm
+- Midnight development environment
 
-1. **Clone and install**
+### Local Development
+
+1. **Clone the repository**
+
    ```bash
    git clone https://github.com/riusricardo/midnight-contracts.git
    cd midnight-contracts
+   ```
+
+2. **Install dependencies**
+
+   ```bash
    yarn install
    ```
 
-2. **Build contracts**
+3. **Build contracts**
+
    ```bash
    yarn compact
    yarn build
    ```
 
-3. **Run tests**
+4. **Run tests**
    ```bash
    yarn test-contracts
-   ```
-
-4. **Development workflow**
-   ```bash
-   # Make changes to contracts
-   # Re-compile and test
-   yarn compact && yarn build && yarn test-contracts
    ```
 
 ## 📄 License
