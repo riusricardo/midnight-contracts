@@ -5,11 +5,6 @@ License: GPL-3.0
 
 Copyright (C) 2025 Ricardo Rius
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -29,79 +24,144 @@ damages or losses arising from the use of this software.
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](./contracts/tokens/nft/src/test/)
 [![NPM Version](https://img.shields.io/npm/v/@midnight-ntwrk/contracts-lib)](https://www.npmjs.com/package/@midnight-ntwrk/contracts-lib)
 
-A comprehensive **smart contract library** for the Midnight blockchain ecosystem. This library provides production-ready, auditable, and reusable contract implementations written in the Compact language.
+A comprehensive **modular smart contract library** for the Midnight blockchain ecosystem. This library provides production-ready, reusable **modules** that you import and customize with your own authorization logic.
 
-## 🚀 Quick Start
+## 🎯 Library Architecture
 
-### Installation
+This isn't just contracts - it's a **modular library**:
 
-```bash
-# Using npm
-npm install [TBD]
+- 📦 **Import modules**: Get core functionality (`mint`, `burn`, `transfer`, etc.)
+- 🔧 **Add your logic**: Wrap circuits with your authorization patterns
+- 🎨 **Unlimited flexibility**: Create any governance, payment, or access control system
 
-# Using yarn
-yarn add [TBD]
-
-# Using pnpm
-pnpm add [TBD]
-```
-
-## 🎯 Library Objectives
-
-The Midnight Contracts Library aims to:
-
-- **Accelerate Development**: Provide ready-to-use, battle-tested smart contracts
-- **Ensure Security**: All contracts are thoroughly tested and follow security best practices
-- **Promote Reusability**: Create modular contracts that can be easily integrated into any project
-- **Maintain Quality**: Implement comprehensive testing and continuous integration
-- **Foster Innovation**: Enable developers to build on solid foundations rather than starting from scratch
-- **Preserve Privacy**: Special focus on privacy-preserving contract implementations
-
-## � Available Contracts
-
-### Token Contracts
-
-#### 🎨 NFT (Non-Fungible Token)
-
-- **Module**: `contracts/tokens/nft/src/modules/Nft.compact`
-- **Description**: Standard ERC721-like NFT implementation with full ownership tracking
-- **Features**: Minting, burning, transfers, approvals, operator management
-- **Use Cases**: Art collections, gaming items, certificates, unique assets
-
-#### 🔒 NFT-ZK (Privacy-Preserving NFT)
-
-- **Module**: `contracts/tokens/nft-zk/src/modules/NftZk.compact`
-- **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
-- **Features**: Anonymous ownership, private transfers, selective disclosure
-- **Use Cases**: Private collections, confidential assets, anonymous trading
-
-## 📚 Documentation
-
-- **[Contract Documentation](./contracts/tokens/)** - Detailed contract docs
-
-## 🚀 Getting Started
-
-### 1. Installation
-
-Add the library to your Midnight project:
-
-```bash
-yarn add [TBD]
-```
-
-### 2. Basic Usage
-
-Import contracts directly into your Compact files using the new module system:
+### The Modular Pattern
 
 ```compact
 pragma language_version 0.16;
 
 import CompactStandardLibrary;
-import "./modules/Nft";
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
 
-// Export selected circuits from the Nft module.
-// We aren't exporting 'burn' or 'mint' because they have no authorization checks.
-export {
+// 1. Export safe circuits from the module
+export { 
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
+
+// 2. Add your authorization around mint/burn
+export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  // Your payment logic here
+  assert(paymentReceived(), "Payment required");
+  mint(to, tokenId);
+}
+
+// 3. Deploy with your custom rules
+```
+
+**Key insight**: The modules give you ALL the circuits. YOU decide how to authorize them.
+
+## 🚀 Quick Start
+
+### Installation
+
+Currently available as a GitHub dependency while we prepare for npm publishing:
+
+```json
+{
+  "dependencies": {
+    "midnight-contracts": "git+https://github.com/riusricardo/midnight-contracts.git"
+  }
+}
+```
+
+Or install directly:
+
+```bash
+# Using npm
+npm install git+https://github.com/riusricardo/midnight-contracts.git
+
+# Using yarn
+yarn add git+https://github.com/riusricardo/midnight-contracts.git
+```
+
+### Basic Usage
+
+```compact
+pragma language_version 0.16;
+
+import CompactStandardLibrary;
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
+
+// 1. Export safe circuits directly from module
+export { 
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
+
+// 2. Create your authorization wrapper
+export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  // Add payment logic, governance, time locks, etc.
+  assert(paymentReceived(), "Payment required");
+  mint(to, tokenId);
+}
+
+// 3. Your wrapped version replaces the raw circuit
+```
+
+## 🎯 Library Objectives
+
+This modular library aims to:
+
+- **Provide Building Blocks**: Give you the core circuits (`mint`, `burn`, `transfer`) to build with
+- **Enable Customization**: YOU decide authorization - admin-only, payment-based, governance, etc.
+- **Ensure Security**: Core circuits are thoroughly tested and battle-hardened
+- **Promote Reusability**: Import the same module into different projects with different rules
+- **Maintain Quality**: Comprehensive testing and continuous integration
+- **Foster Innovation**: Build custom authorization instead of reinventing token logic
+- **Preserve Privacy**: Special focus on zero-knowledge and privacy-preserving implementations
+
+## 📦 Available Modules
+
+### Token Modules
+
+#### 🎨 NFT (Non-Fungible Token)
+
+- **Module**: `contracts/tokens/nft/src/modules/Nft.compact`
+- **Exports**: `mint`, `burn`, `transfer`, `approve`, `balanceOf`, `ownerOf`, etc.
+- **Description**: Complete ERC721-like NFT implementation
+- **Your choice**: Add payment, governance, time-locks, or any authorization you want
+
+#### 🔒 NFT-ZK (Privacy-Preserving NFT)
+
+- **Module**: `contracts/tokens/nft-zk/src/modules/NftZk.compact`
+- **Exports**: `mintPrivate`, `burnPrivate`, `transferPrivate`, `approvePrivate`, etc.
+- **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
+- **Your choice**: Add anonymous payments, private governance, or confidential authorization
+
+## 🛠️ Usage Examples
+
+### Example 1: Admin-Only NFT (Simple)
+
+```compact
+pragma language_version 0.16;
+
+import CompactStandardLibrary;
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
+
+// Export safe circuits from the module
+export { 
   balanceOf,
   ownerOf,
   approve,
@@ -114,115 +174,149 @@ export {
 
 export ledger contractAdmin: ZswapCoinPublicKey;
 
-// Set the public key of the contract admin.
 constructor() {
   contractAdmin = ownPublicKey();
 }
 
-// Example: Only Admin can mint tokens.
+// Only admin can mint tokens
 export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();
   assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
-
-  // Use the imported NFT functionality
   mint(to, tokenId);
 }
 
-// Example: Only admin can burn tokens.
+// Only admin can burn tokens
 export circuit burnAdmin(tokenId: Uint<64>): [] {
   const senderPublicKey = ownPublicKey();
   assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
-
-  // Get the owner of the token and then burn it
   const tokenOwner = ownerOf(tokenId);
   burn(tokenOwner, tokenId);
 }
 ```
 
-### 3. Privacy-Preserving Contracts
-
-Use the NFT-ZK module for privacy-focused applications:
+### Example 2: Payment-Based NFT (Advanced)
 
 ```compact
 pragma language_version 0.16;
 
 import CompactStandardLibrary;
-import "./modules/NftZk";
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
 
-// Export selected circuits from the NftZk module.
-// We aren't exporting 'burn' or 'mint' because they have no authorization checks.
-export {
+export { 
   balanceOf,
   ownerOf,
-  approve,
-  getApproved,
-  setApprovalForAll,
-  isApprovedForAll,
   transfer,
-  transferFrom,
-  generateHashKey
+  approve
 };
 
-export ledger contractAdmin: ZswapCoinPublicKey;
+export ledger mintPrice: Uint<64>;
+export ledger treasury: ZswapCoinPublicKey;
 
-// Set the public key of the contract admin.
 constructor() {
-  contractAdmin = ownPublicKey();
+  mintPrice = 1000n;
+  treasury = ownPublicKey();
 }
 
-// Example: Only Admin can mint tokens.
-export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  const senderPublicKey = ownPublicKey();
-  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
-
-  // Use the imported NFT-ZK functionality
+// Anyone can mint by paying
+export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  // Verify payment (implementation would check actual payment)
+  assert(paymentAmount() >= mintPrice, "Insufficient payment");
+  
+  // Process payment to treasury
+  processPayment(treasury, mintPrice);
+  
+  // Mint the token
   mint(to, tokenId);
-}
-
-// Example: Only admin can burn tokens.
-export circuit burnAdmin(tokenId: Uint<64>): [] {
-  const senderPublicKey = ownPublicKey();
-  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
-
-  // Get the owner hash key of the token and then burn it
-  const tokenOwnerHashKey = ownerOf(tokenId);
-  burn(tokenOwnerHashKey, tokenId);
 }
 ```
 
-## 🔧 Development Setup
+### Integration in Your Project
+
+1. **Add Dependency**:
+```json
+{
+  "dependencies": {
+    "midnight-contracts": "git+https://github.com/riusricardo/midnight-contracts.git"
+  }
+}
+```
+
+## 🏗️ Development
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/riusricardo/midnight-contracts.git
+cd midnight-contracts
+
+# Install dependencies
+yarn install
+
+# Build all contracts
+yarn build
+
+# Run tests
+yarn test-contracts
+```
+
+### Project Structure
+
+```
+midnight-contracts/
+├── contracts/                    # Main contracts package
+│   ├── tokens/                   # Token implementations
+│   │   ├── nft/                  # Standard NFT
+│   │   │   ├── src/
+│   │   │   │   ├── nft.compact   # Main contract
+│   │   │   │   ├── modules/      # Core modules
+│   │   │   │   └── test/         # Test suite
+│   │   │   └── CONTRACT.md       # Documentation
+│   │   └── nft-zk/               # Privacy NFT
+│   │       ├── src/
+│   │       │   ├── nft-zk.compact # Main contract
+│   │       │   ├── modules/       # Privacy modules
+│   │       │   └── test/          # Test suite
+│   │       └── CONTRACT.md        # Documentation
+│   ├── src/                      # Compiled outputs
+│   │   └── managed/              # Generated contracts
+│   └── dist/                     # Distribution files
+├── compact/                      # Compact compiler tools
+└── package.json                  # Root package (workspace)
+```
+
+## 🏁 Quick Development Setup
 
 ### Prerequisites
+- Node.js 18+ 
+- Yarn package manager
+- Git
 
-- Node.js 20+
-- Yarn or npm
-- Midnight development environment
+### Setup Steps
 
-### Local Development
-
-1. **Clone the repository**
-
+1. **Clone and install**
    ```bash
    git clone https://github.com/riusricardo/midnight-contracts.git
    cd midnight-contracts
-   ```
-
-2. **Install dependencies**
-
-   ```bash
    yarn install
    ```
 
-3. **Build contracts**
-
+2. **Build contracts**
    ```bash
    yarn compact
    yarn build
    ```
 
-4. **Run tests**
+3. **Run tests**
    ```bash
    yarn test-contracts
+   ```
+
+4. **Development workflow**
+   ```bash
+   # Make changes to contracts
+   # Re-compile and test
+   yarn compact && yarn build && yarn test-contracts
    ```
 
 ## 📄 License
@@ -241,7 +335,3 @@ This project is licensed under the **GNU General Public License v3.0** - see the
 **Built with ❤️ for the Midnight ecosystem**
 
 _Empowering developers to build privacy-first applications with confidence._
-
-```
-
-```
