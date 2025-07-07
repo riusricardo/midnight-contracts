@@ -22,7 +22,6 @@ damages or losses arising from the use of this software.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](./contracts/tokens/nft/src/test/)
-[![NPM Version](https://img.shields.io/npm/v/@midnight-ntwrk/contracts-lib)](https://www.npmjs.com/package/@midnight-ntwrk/contracts-lib)
 
 ## 🎯 Library Objectives
 
@@ -45,6 +44,10 @@ This isn't just contracts - it's a **modular library**:
 - 🎨 **Unlimited flexibility**: Create any governance, payment, or access control system
 
 ### The Modular Pattern
+```
+modules/Nft   - Core module for public NFTs
+modules/NftZk - Core module for privacy NFTs
+```
 
 ```compact
 pragma language_version 0.16;
