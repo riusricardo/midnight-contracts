@@ -78,6 +78,11 @@ module NftZk {
     return tokenOwner.lookup(disclose(tokenId));
   }
 
+  // Returns true if a token exists for the given token ID
+  export circuit tokenExists(tokenId: Uint<64>): Boolean {
+    return tokenOwner.member(tokenId);
+  }
+
   // Approves another public key to transfer the specified token ID
   export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
     const senderPublicKey = ownPublicKey();
@@ -211,11 +216,6 @@ module NftZk {
   // =====================
   // Internal helper circuits
   // =====================
-
-  // Returns true if a token exists for the given token ID
-  circuit tokenExists(tokenId: Uint<64>): Boolean {
-    return tokenOwner.member(tokenId);
-  }
 
   // Returns true if the spender is the owner, approved, or an operator for the token
   circuit isApprovedOrOwner(spenderHashKey: Field, tokenId: Uint<64>): Boolean {
