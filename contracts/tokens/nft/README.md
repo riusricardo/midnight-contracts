@@ -23,7 +23,7 @@ Use at your own risk. The author assumes no responsibility for any
 damages or losses arising from the use of this software.
 -->
 
-# NFT Contract (Public Ledger)
+# NFT Contract (Public Ledger)  Module
 
 This directory contains a complete NFT (Non-Fungible Token) contract implementation using the Compact language for the Midnight blockchain. This is the **public ledger version** that stores all ownership and approval data on the public blockchain ledger. The contract follows ERC-721 standards and provides a secure way to create and manage unique digital assets with full transparency.
 

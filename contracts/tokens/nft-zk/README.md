@@ -23,7 +23,7 @@ Use at your own risk. The author assumes no responsibility for any
 damages or losses arising from the use of this software.
 -->
 
-# NFT-ZK Contract (Zero-Knowledge Privacy)
+# NFT-ZK Contract (Zero-Knowledge Privacy) Module
 
 This directory contains a complete NFT (Non-Fungible Token) contract implementation using the Compact language for the Midnight blockchain. This is the **zero-knowledge privacy version** that uses hash-based ownership and private state to provide privacy-preserving NFT functionality. The contract follows ERC-721 standards while adding cryptographic privacy protections.
 

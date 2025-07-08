@@ -48,33 +48,9 @@ This isn't just contracts - it's a **modular library**:
 modules/Nft   - Core module for public NFTs
 modules/NftZk - Core module for privacy NFTs
 ```
-
-```compact
-pragma language_version 0.16;
-
-import CompactStandardLibrary;
+Just import it in your contract to get access to all the circuits.
+```
 import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
-
-// 1. Export safe circuits from the module
-export { 
-  balanceOf,
-  ownerOf,
-  approve,
-  getApproved,
-  setApprovalForAll,
-  isApprovedForAll,
-  transfer,
-  transferFrom
-};
-
-// 2. Add your authorization around mint/burn
-export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  // Your payment logic here
-  assert(paymentReceived(), "Payment required");
-  mint(to, tokenId);
-}
-
-// 3. Deploy with your custom rules
 ```
 
 **Key insight**: The modules give you ALL the circuits. YOU decide how to authorize them.
@@ -165,7 +141,7 @@ export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
 #### 🔒 NFT-ZK (Privacy-Preserving NFT)
 
 - **Module**: `contracts/tokens/nft-zk/src/modules/NftZk.compact`
-- **Exports**: `mintPrivate`, `burnPrivate`, `transferPrivate`, `approvePrivate`, etc.
+- **Exports**: `mint`, `burn`, `transfer`, `approve`, `balanceOf`, `ownerOf`, etc.
 - **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
 - **Your choice**: Add anonymous payments, private governance, or confidential authorization
 
